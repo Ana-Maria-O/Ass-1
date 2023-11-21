@@ -171,8 +171,10 @@ public class RobotArm {
     // Check if the values of the sensor values are the same as the expected values
     // (integer values)
     public void checkSensorMotorValues(double sensValue, double expValue, String sensor) {
+        // Get the difference between the sensor values and the expected values
+        double difference = sensValue - expValue;
         // Notify wms if they don't match
-        if (sensValue!= expValue) {
+        if (difference >= 1 || difference < -1) {
             // Notify WMS
             WMS.notify("The " + sensor + " sensor value does not match the expected value");
             // Bring to robot to a safe state
