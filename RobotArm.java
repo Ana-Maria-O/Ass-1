@@ -1,10 +1,17 @@
 public class RobotArm {
-    // The current position of the robot arm
+    // The current position and status of the robot arm
     public static double rotation = 0;
     public static double height = 0;
     public static double length = 0;
     public static boolean gripped = false;
     public static String currentRFID = "";
+
+    // Detected position and status of the robot arm
+    public static double sensRotation = 0;
+    public static double sensHeight = 0;
+    public static double sensLength = 0;
+    public static boolean sensGripped = false;
+    public static String sensCurrentRFID = "";
 
     // Robot storage location
     public static final double ROBOT_STORAGE_ROTATION = 10;
