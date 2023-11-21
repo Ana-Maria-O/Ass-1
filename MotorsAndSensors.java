@@ -56,15 +56,18 @@ public class MotorsAndSensors {
 
         public static void grip(String rfid) {
             RobotArm.gripped = true;
+            RobotArm.sensGripped = true;
             RobotArm.currentRFID = rfid;
         }
 
         public static void grip() {
             RobotArm.gripped = true;
+            RobotArm.sensGripped = true;
         }
 
         public static void ungrip() {
             RobotArm.gripped = false;
+            RobotArm.sensGripped = false;
             RobotArm.currentRFID = "";
         }
 
@@ -75,54 +78,73 @@ public class MotorsAndSensors {
     public class rotationSensor extends MotorsSensors {
 
         public static double read() {
-            return RobotArm.rotation + (Math.random() * 2  - 1);
+            double value = RobotArm.rotation + (Math.random() - 0.5);
+            RobotArm.sensRotation = value;
+            return value;
         }
 
         public static double readFaulty() {
-            return RobotArm.rotation + (random.nextInt((MAX - MIN) + 1) + MIN);
+            double value = RobotArm.rotation + (random.nextInt((MAX - MIN) + 1) + MIN);
+            RobotArm.sensRotation = value;
+            return value;
         }
     }
 
     public class verticalSensor extends MotorsSensors {
 
         public static double read() {
-            return RobotArm.height + (Math.random() * 2  - 1);
+            double value = RobotArm.height + (Math.random() - 0.5);
+            RobotArm.sensHeight = value;
+            return value;
         }
 
         public static double readFaulty() {
-            return RobotArm.height + (random.nextInt((MAX - MIN) + 1) + MIN);
+            double value = RobotArm.height + (random.nextInt((MAX - MIN) + 1) + MIN);
+            RobotArm.sensHeight = value;
+            return value;
         }
     }
 
     public class horizontalSensor extends MotorsSensors {
 
         public static double read() {
-            return RobotArm.length + (Math.random() * 2  - 1);
+            double value = RobotArm.length + (Math.random() - 0.5);
+            RobotArm.sensLength = value;
+            return value;
         }
 
         public static double readFaulty() {
-            return RobotArm.length + (random.nextInt((MAX - MIN) + 1) + MIN);
+            double value = RobotArm.length + (random.nextInt((MAX - MIN) + 1) + MIN);
+            RobotArm.sensLength = value;
+            return value;
         }
     }
 
     public class gripSensor extends MotorsSensors {
 
         public static boolean read() {
-            return RobotArm.gripped;
+            boolean value = RobotArm.gripped;
+            RobotArm.sensGripped = value;
+            return value;
         }
 
         public static boolean readFaulty() {
-            return !RobotArm.gripped;
+            boolean value =!RobotArm.gripped;
+            RobotArm.sensGripped = value;
+            return value;
         }
     }
 
     public class RFIDReader extends MotorsSensors {
         
         public static String read() {
-            return RobotArm.currentRFID;
+            String value = RobotArm.currentRFID;
+            RobotArm.sensCurrentRFID = value;
+            return value;
         }
 
         public static String readFaulty() {
+            RobotArm.sensCurrentRFID = "";
             return "";
         }
     }

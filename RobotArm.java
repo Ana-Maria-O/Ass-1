@@ -43,6 +43,8 @@ public class RobotArm {
             // Bring to robot to a safe state
             safeState();
         }
+
+        System.out.println("Package " + rfid + "fetched successfully");
     }
 
     // Take a package from a shelf at the position indicated by rotation, height,
@@ -50,23 +52,16 @@ public class RobotArm {
     public void takePackageFromShelf(double rotation, double height, double length, String rfid) {
         // If the grip is turned on, ungrip
         ungripPackage();
-
-        // Compute how many units of distance are needed for the robot arm to move to
-        // the desired position
-        double movement[] = computeNeededMovement(rotation, height, length);
         // Move the arm to the position indicated by rotation, height, length
-        moveArm(movement[0], movement[1], movement[2]);
+        moveArm(rotation, height, length);
         // Take the package
         gripPackage(rfid);
     }
 
     // Place a package in the robot storage
     public void placePackageInRobotStorage() {
-        // Compute how many units of distance are needed for the robot storage to move
-        // to the storage
-        double movement[] = computeNeededMovement(ROBOT_STORAGE_ROTATION, ROBOT_STORAGE_HEIGHT, ROBOT_STORAGE_LENGTH);
         // Move the arm to the position indicated by rotation, height, length
-        moveArm(movement[0], movement[1], movement[2]);
+        moveArm(ROBOT_STORAGE_ROTATION, ROBOT_STORAGE_HEIGHT, ROBOT_STORAGE_LENGTH);
         // Ungrip the package
         ungripPackage();
     }
@@ -87,15 +82,22 @@ public class RobotArm {
 
     // Move the arm to the position indicated by rotation, height, length
     public void moveArm(double rotation, double height, double length) {
+        // Compute how many units of distance are needed for the robot storage to move
+        // to the storage
+        double movement[] = computeNeededMovement(rotation, height, length);
+
         // Rotate the arm
-        MotorsAndSensors.rotationMotor.rotateArm(rotation);
+        MotorsAndSensors.rotationMotor.rotateArm(movement[0]);
         // Extend the arm vertically
-        MotorsAndSensors.verticalMotor.moveArm(height);
+        MotorsAndSensors.verticalMotor.moveArm(movement[1]);
         // Extend the arm horizontally
-        MotorsAndSensors.horizontalMotor.moveArm(length);
+        MotorsAndSensors.horizontalMotor.moveArm(movement[2]);
 
         // Get the current position of the robot arm
         double position[] = getArmPosition();
+
+        // Display
+        StatusDisplay.display();
 
         // Check if the sensor values and the expected values are the same
         checkSensorMotorValues(position[0], rotation, "rotation");
@@ -113,6 +115,9 @@ public class RobotArm {
         // Grip the package
         MotorsAndSensors.gripMotor.grip(rfid);
 
+        // Display
+        StatusDisplay.display();
+
         // Check if the grip sensor value and its expected value is the same
         checkSensorMotorValues(MotorsAndSensors.gripSensor.read(), true);
         // Check if the read RFID of the package is the same as the expected RFID
@@ -127,6 +132,9 @@ public class RobotArm {
             MotorsAndSensors.gripMotor.ungrip();
         }
 
+        // Display
+        StatusDisplay.display();
+
         // Check if the grip sensor works
         checkSensorMotorValues(MotorsAndSensors.gripSensor.read(), false);
         // Check if the RFID reader does not read an RFID
@@ -136,11 +144,11 @@ public class RobotArm {
     // Get the current position of the robot arm
     public double[] getArmPosition() {
         // Get the rotation position
-        double r = MotorsAndSensors.rotationSensor.read();
+        double r = Math.round(MotorsAndSensors.rotationSensor.read());
         // Get the height position
-        double h = MotorsAndSensors.verticalSensor.read();
+        double h = Math.round(MotorsAndSensors.verticalSensor.read());
         // Get the length position
-        double l = MotorsAndSensors.horizontalSensor.read();
+        double l = Math.round(MotorsAndSensors.horizontalSensor.read());
 
         return new double[] { r, h, l };
     }
@@ -171,10 +179,8 @@ public class RobotArm {
     // Check if the values of the sensor values are the same as the expected values
     // (integer values)
     public void checkSensorMotorValues(double sensValue, double expValue, String sensor) {
-        // Get the difference between the sensor values and the expected values
-        double difference = sensValue - expValue;
         // Notify wms if they don't match
-        if (difference >= 1 || difference < -1) {
+        if (sensValue != expValue) {
             // Notify WMS
             WMS.notify("The " + sensor + " sensor value does not match the expected value");
             // Bring to robot to a safe state
