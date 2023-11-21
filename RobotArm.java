@@ -44,7 +44,7 @@ public class RobotArm {
             safeState();
         }
 
-        System.out.println("Package " + rfid + "fetched successfully");
+        System.out.println("Package " + rfid + " fetched successfully");
     }
 
     // Take a package from a shelf at the position indicated by rotation, height,
