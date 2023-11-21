@@ -7,13 +7,24 @@ public class StatusDisplay {
                 double previousHeight = RobotArm.height;
                 double previousLength = RobotArm.length;
                 boolean previousGrip = RobotArm.gripped;
+                String previousRFID = RobotArm.currentRFID;
+                double previousSensRotation = RobotArm.sensRotation;
+                double previousSensHeight = RobotArm.sensHeight;
+                double previousSensLength = RobotArm.sensLength;
+                boolean previousSensGrip = RobotArm.sensGripped;
+                String previousSensCurrentRFID = RobotArm.sensCurrentRFID;
 
                 display();
 
                 while (true) {
                     // Check for changes in variables
                     if (RobotArm.rotation != previousRotation || RobotArm.height != previousHeight
-                            || RobotArm.length != previousLength || RobotArm.gripped != previousGrip) {
+                            || RobotArm.length != previousLength || RobotArm.gripped != previousGrip
+                            || RobotArm.currentRFID != previousRFID ||
+                            RobotArm.sensRotation != previousSensRotation || RobotArm.sensHeight != previousSensHeight
+                            ||
+                            RobotArm.sensLength != previousSensLength || RobotArm.sensGripped != previousSensGrip
+                            || RobotArm.sensCurrentRFID != previousSensCurrentRFID) {
                         display();
                     }
 
