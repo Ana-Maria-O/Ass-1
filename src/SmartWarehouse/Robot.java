@@ -1,3 +1,4 @@
+package src.SmartWarehouse;
 import java.util.Scanner;
 
 public class Robot {

@@ -1,24 +1,37 @@
+package src.SmartWarehouse;
 public class RobotArm {
     // The current position and status of the robot arm
-    public static double rotation = 0;
-    public static double height = 0;
-    public static double length = 0;
-    public static boolean gripped = false;
-    public static String currentRFID = "";
+    public double rotation = 0;
+    public double height = 0;
+    public double length = 0;
+    public boolean gripped = false;
+    public String currentRFID = "";
 
     // Detected position and status of the robot arm
-    public static double sensRotation = 0;
-    public static double sensHeight = 0;
-    public static double sensLength = 0;
-    public static boolean sensGripped = false;
-    public static String sensCurrentRFID = "";
+    public double sensRotation = 0;
+    public double sensHeight = 0;
+    public double sensLength = 0;
+    public boolean sensGripped = false;
+    public String sensCurrentRFID = "";
 
     // Robot storage location
-    public static final double ROBOT_STORAGE_ROTATION = 10;
-    public static final double ROBOT_STORAGE_HEIGHT = 0;
-    public static final double ROBOT_STORAGE_LENGTH = 5;
+    public final double ROBOT_STORAGE_ROTATION = 10;
+    public final double ROBOT_STORAGE_HEIGHT = 0;
+    public final double ROBOT_STORAGE_LENGTH = 5;
 
-    public static void main(String[] args) {
+    // Instantiate the motors and sensors
+    MotorsAndSensors motorsAndSensors = new MotorsAndSensors(this);
+    MotorsAndSensors.rotationMotor rotationMotor = motorsAndSensors.new rotationMotor();
+    MotorsAndSensors.verticalMotor verticalMotor = motorsAndSensors.new verticalMotor();
+    MotorsAndSensors.horizontalMotor horizontalMotor = motorsAndSensors.new horizontalMotor();
+    MotorsAndSensors.gripMotor gripMotor = motorsAndSensors.new gripMotor();
+    MotorsAndSensors.rotationSensor rotationSensor = motorsAndSensors.new rotationSensor();
+    MotorsAndSensors.verticalSensor verticalSensor = motorsAndSensors.new verticalSensor();
+    MotorsAndSensors.horizontalSensor horizontalSensor = motorsAndSensors.new horizontalSensor();
+    MotorsAndSensors.gripSensor gripSensor = motorsAndSensors.new gripSensor();
+    MotorsAndSensors.RFIDReader rfidReader = motorsAndSensors.new RFIDReader();
+
+    public void main(String[] args) {
 
     }
 
@@ -34,7 +47,9 @@ public class RobotArm {
 
         // Check if the read RFID of the package is the same as the RFID indicated by
         // rfid
-        if (rfid.equals(MotorsAndSensors.RFIDReader.read())) {
+        if (rfid.equals(rfidReader.read())) {
+            // Retract the arm horizontally
+            horizontalMotor.moveArm(0);
             // Place the package in the robot storage
             placePackageInRobotStorage();
         } else {
@@ -87,17 +102,17 @@ public class RobotArm {
         double movement[] = computeNeededMovement(rotation, height, length);
 
         // Rotate the arm
-        MotorsAndSensors.rotationMotor.rotateArm(movement[0]);
+        rotationMotor.rotateArm(movement[0]);
         // Extend the arm vertically
-        MotorsAndSensors.verticalMotor.moveArm(movement[1]);
+        verticalMotor.moveArm(movement[1]);
         // Extend the arm horizontally
-        MotorsAndSensors.horizontalMotor.moveArm(movement[2]);
+        horizontalMotor.moveArm(movement[2]);
 
         // Get the current position of the robot arm
         double position[] = getArmPosition();
 
         // Display
-        StatusDisplay.display();
+        StatusDisplay.display(this);
 
         // Check if the sensor values and the expected values are the same
         checkSensorMotorValues(position[0], rotation, "rotation");
@@ -108,56 +123,56 @@ public class RobotArm {
     // Grip a package
     public void gripPackage(String rfid) {
         // If the grip is gripping, ungrip
-        if (MotorsAndSensors.gripSensor.read() == true) {
-            MotorsAndSensors.gripMotor.ungrip();
+        if (gripSensor.read() == true) {
+            gripMotor.ungrip();
         }
 
         // Grip the package
-        MotorsAndSensors.gripMotor.grip(rfid);
+        gripMotor.grip(rfid);
 
         // Display
-        StatusDisplay.display();
+        StatusDisplay.display(this);
 
         // Check if the grip sensor value and its expected value is the same
-        checkSensorMotorValues(MotorsAndSensors.gripSensor.read(), true);
+        checkSensorMotorValues(gripSensor.read(), true);
         // Check if the read RFID of the package is the same as the expected RFID
-        checkSensorMotorValues(MotorsAndSensors.RFIDReader.read(), rfid);
+        checkSensorMotorValues(rfidReader.read(), rfid);
     }
 
     // Ungrip a package
     public void ungripPackage() {
         // Only ungrip if the grip is already gripping
-        if (MotorsAndSensors.gripSensor.read()) {
+        if (gripSensor.read()) {
             // Ungrip the package
-            MotorsAndSensors.gripMotor.ungrip();
+            gripMotor.ungrip();
         }
 
         // Display
-        StatusDisplay.display();
+        StatusDisplay.display(this);
 
         // Check if the grip sensor works
-        checkSensorMotorValues(MotorsAndSensors.gripSensor.read(), false);
+        checkSensorMotorValues(gripSensor.read(), false);
         // Check if the RFID reader does not read an RFID
-        checkSensorMotorValues(MotorsAndSensors.RFIDReader.read(), "");
+        checkSensorMotorValues(rfidReader.read(), "");
     }
 
     // Get the current position of the robot arm
     public double[] getArmPosition() {
         // Get the rotation position
-        double r = Math.round(MotorsAndSensors.rotationSensor.read());
+        double r = Math.round(rotationSensor.read());
         // Get the height position
-        double h = Math.round(MotorsAndSensors.verticalSensor.read());
+        double h = Math.round(verticalSensor.read());
         // Get the length position
-        double l = Math.round(MotorsAndSensors.horizontalSensor.read());
+        double l = Math.round(horizontalSensor.read());
 
         return new double[] { r, h, l };
     }
 
     // Notify WMS and send the robot to a safe state if the sensors are not healthy
     public void checkSensorHealth() {
-        if (!MotorsAndSensors.RFIDReader.health() || !MotorsAndSensors.gripSensor.health()
-                || !MotorsAndSensors.rotationSensor.health() || !MotorsAndSensors.verticalSensor.health()
-                || !MotorsAndSensors.horizontalSensor.health()) {
+        if (!rfidReader.health() || !gripSensor.health()
+                || !rotationSensor.health() || !verticalSensor.health()
+                || !horizontalSensor.health()) {
             // Notify WMS
             WMS.notify("The sensors are not healthy");
             // Bring to robot to a safe state
@@ -167,8 +182,8 @@ public class RobotArm {
 
     // Notify WMS and send the robot to a safe state if the motors are not healthy
     public void checkMotorHealth() {
-        if (!MotorsAndSensors.rotationMotor.health() || !MotorsAndSensors.verticalMotor.health()
-                || !MotorsAndSensors.horizontalMotor.health() || !MotorsAndSensors.gripMotor.health()) {
+        if (!rotationMotor.health() || !verticalMotor.health()
+                || !horizontalMotor.health() || !gripMotor.health()) {
             // Notify WMS
             WMS.notify("The motors are not healthy");
             // Bring to robot to a safe state
