@@ -152,9 +152,11 @@ public class MotorsAndSensors {
         }
 
         public String readFaulty() {
+            if (robotArm.currentRFID.length() > 0){
             String value = robotArm.currentRFID.substring(0, robotArm.currentRFID.length() - 1);
             robotArm.sensCurrentRFID = value;
-            return value;
+            return value;}
+            else {return "a";}
         }
     }
 }

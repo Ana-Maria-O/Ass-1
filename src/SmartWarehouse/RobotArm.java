@@ -20,16 +20,16 @@ public class RobotArm {
     public final double ROBOT_STORAGE_LENGTH = 5;
 
     // Instantiate the motors and sensors
-    MotorsAndSensors motorsAndSensors = new MotorsAndSensors(this);
-    MotorsAndSensors.rotationMotor rotationMotor = motorsAndSensors.new rotationMotor();
-    MotorsAndSensors.verticalMotor verticalMotor = motorsAndSensors.new verticalMotor();
-    MotorsAndSensors.horizontalMotor horizontalMotor = motorsAndSensors.new horizontalMotor();
-    MotorsAndSensors.gripMotor gripMotor = motorsAndSensors.new gripMotor();
-    MotorsAndSensors.rotationSensor rotationSensor = motorsAndSensors.new rotationSensor();
-    MotorsAndSensors.verticalSensor verticalSensor = motorsAndSensors.new verticalSensor();
-    MotorsAndSensors.horizontalSensor horizontalSensor = motorsAndSensors.new horizontalSensor();
-    MotorsAndSensors.gripSensor gripSensor = motorsAndSensors.new gripSensor();
-    MotorsAndSensors.RFIDReader rfidReader = motorsAndSensors.new RFIDReader();
+    public MotorsAndSensors motorsAndSensors = new MotorsAndSensors(this);
+    public MotorsAndSensors.rotationMotor rotationMotor = motorsAndSensors.new rotationMotor();
+    public MotorsAndSensors.verticalMotor verticalMotor = motorsAndSensors.new verticalMotor();
+    public MotorsAndSensors.horizontalMotor horizontalMotor = motorsAndSensors.new horizontalMotor();
+    public MotorsAndSensors.gripMotor gripMotor = motorsAndSensors.new gripMotor();
+    public MotorsAndSensors.rotationSensor rotationSensor = motorsAndSensors.new rotationSensor();
+    public MotorsAndSensors.verticalSensor verticalSensor = motorsAndSensors.new verticalSensor();
+    public MotorsAndSensors.horizontalSensor horizontalSensor = motorsAndSensors.new horizontalSensor();
+    public MotorsAndSensors.gripSensor gripSensor = motorsAndSensors.new gripSensor();
+    public MotorsAndSensors.RFIDReader rfidReader = motorsAndSensors.new RFIDReader();
 
     public void main(String[] args) {
 
@@ -75,7 +75,7 @@ public class RobotArm {
 
     // Place a package in the robot storage
     public void placePackageInRobotStorage() {
-        // Move the arm to the position indicated by rotation, height, length
+        // Move the arm to the position of the storage
         moveArm(ROBOT_STORAGE_ROTATION, ROBOT_STORAGE_HEIGHT, ROBOT_STORAGE_LENGTH);
         // Ungrip the package
         ungripPackage();
@@ -137,6 +137,9 @@ public class RobotArm {
         checkSensorMotorValues(gripSensor.read(), true);
         // Check if the read RFID of the package is the same as the expected RFID
         checkSensorMotorValues(rfidReader.read(), rfid);
+
+        // Display
+        StatusDisplay.display(this);
     }
 
     // Ungrip a package
@@ -154,6 +157,9 @@ public class RobotArm {
         checkSensorMotorValues(gripSensor.read(), false);
         // Check if the RFID reader does not read an RFID
         checkSensorMotorValues(rfidReader.read(), "");
+
+        // Display
+        StatusDisplay.display(this);
     }
 
     // Get the current position of the robot arm
