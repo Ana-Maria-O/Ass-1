@@ -4,9 +4,19 @@ public class ConveyorBelt {
 
     String loadingPositionPacketRFID;
     Object[] robotLoadingPosition = new Object[1];
+    boolean isStopped = true;
 
     public void preparePacketForFetching(String packetRFID) {
+        isStopped = false;
+        System.out.println("\u001B[32m" + "ConveyorBelt is on and moves packets" + "\u001B[0m");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         loadingPositionPacketRFID = packetRFID;
+        isStopped = true;
+        System.out.println("\u001B[32m" + "ConveyorBelt is stopped" + "\u001B[0m");
     }
 
     public Object[] getRobotLoadingPosition() {
