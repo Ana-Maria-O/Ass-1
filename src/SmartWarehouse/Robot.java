@@ -80,6 +80,7 @@ public class Robot {
             }
             if (!radar.hasFreeSpaceScan(loadingPositionForRobots))
                 throw new Error(this + ": loading position is still not empty despite wait");
+            conveyorBelt.setObjectAtRobotLoadingPosition(this);
         }
     }
 
