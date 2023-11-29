@@ -72,7 +72,14 @@ public class Robot {
             conveyorBelt.setObjectAtRobotLoadingPosition(this);
         } else {
             System.out.println(this + " radar reads that loading position is occupied");
-            // handle occupied loading position case
+            System.out.println(this + " performing short wait for space to be freed");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (!radar.hasFreeSpaceScan(loadingPositionForRobots))
+                throw new Error(this + ": loading position is still not empty despite wait");
         }
     }
 
