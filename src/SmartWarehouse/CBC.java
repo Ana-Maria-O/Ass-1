@@ -40,7 +40,7 @@ class CBC {
 
         // tell robot to fetch packet
         logCBCStatus(robot + " is signaled to fetch packet from conveyor belt");
-        robot.fetchPacketFromConveyorBelt(conveyorBelt, packetRFID);
+        robot.fetchPacketFromConveyorBelt(conveyorBelt);
         logCBCStatus(robot + " acknowledges packet is fetched. Loading position should be free again");
         // robot acknowledges packet is fetched and moves away
 

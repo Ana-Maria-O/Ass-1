@@ -9,6 +9,7 @@ public class Robot {
     RobotArm arm = new RobotArm(storageSpace);
     Position position = new Position(0, 0);
     String robotID;
+    String currentTargetPacketRFID;
 
     public Robot(String robotID) {
         this.robotID = robotID;
@@ -24,18 +25,19 @@ public class Robot {
     }
 
     public void enqueueForFetching(CBC conveyorBeltController, String packetRFID) {
-        System.out.println(this + " enqueues for fetching packet at CBC");
+        currentTargetPacketRFID = packetRFID;
+        System.out.println(this + " enqueues for fetching packet " + packetRFID + " at CBC");
         conveyorBeltController.enqueueForFetching(this, packetRFID);
     }
 
-    public void fetchPacketFromConveyorBelt(ConveyorBelt conveyorBelt, String packetRFID) {
+    public void fetchPacketFromConveyorBelt(ConveyorBelt conveyorBelt) {
         // Known values when fetching packets from the conveyor belt
         double FetchHeight = 1;
         double FetchArmExtension = 1;
         String actualFetchedPacketRFID = conveyorBelt.loadingPositionPacketRFID;
         arm.fetchPackage(0, FetchHeight, FetchArmExtension, actualFetchedPacketRFID);
-        if (!packetRFID.equals(actualFetchedPacketRFID)) {
-            throw new Error("Wrong packet fetched at conveyor belt: " + packetRFID + " != " + actualFetchedPacketRFID);
+        if (!currentTargetPacketRFID.equals(actualFetchedPacketRFID)) {
+            throw new Error("Wrong packet fetched at conveyor belt: " + currentTargetPacketRFID + " != " + actualFetchedPacketRFID);
         }
         if (weightSensor.getReading() <= 0)
             throw new Error("No packet registered by weight sensor");
