@@ -33,14 +33,25 @@ class CBC {
         // await robot to signal it is ready to fetch packet
 
         // prepare packet for robot
-        logCBCStatus("signal CB  to prepare packet " + packetRFID);
-        conveyorBelt.preparePacketForFetching(packetRFID);
+        logCBCStatus("signal CB to prepare packet " + packetRFID);
+        conveyorBelt.preparePacketForFetching(null);
         logCBCStatus("CB signaled packet is transported to loading position");
         // await signal that packet is transported to the loading position
 
         // tell robot to fetch packet
         logCBCStatus(robot + " is signaled to fetch packet from conveyor belt");
-        robot.fetchPacketFromConveyorBelt(conveyorBelt);
+        try {
+            robot.fetchPacketFromConveyorBelt(conveyorBelt);
+        } catch (NoPacketException e) {
+            logCBCStatus("again signals CB to prepare packet " + packetRFID);
+        conveyorBelt.preparePacketForFetching(packetRFID);
+            logCBCStatus("CB signaled packet is transported to loading position");
+            try {
+                robot.fetchPacketFromConveyorBelt(conveyorBelt);
+            } catch (NoPacketException e1) {
+                throw new Error("Despite retry, packet does not appear to robot at CB.");
+            }
+        }
         logCBCStatus(robot + " acknowledges packet is fetched. Loading position should be free again");
         // robot acknowledges packet is fetched and moves away
 

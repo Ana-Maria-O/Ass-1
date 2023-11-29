@@ -30,11 +30,24 @@ public class Robot {
         conveyorBeltController.enqueueForFetching(this, packetRFID);
     }
 
-    public void fetchPacketFromConveyorBelt(ConveyorBelt conveyorBelt) {
+    public void fetchPacketFromConveyorBelt(ConveyorBelt conveyorBelt) throws NoPacketException {
+        String actualFetchedPacketRFID = conveyorBelt.loadingPositionPacketRFID;
+        if (actualFetchedPacketRFID == null) {
+            System.out.println(this + " does not detect any packet at CB. Performing short wait");
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        if (conveyorBelt.loadingPositionPacketRFID == null) {
+            System.out.println(this + " does still not detect any packet. Notifying CBC.");
+            throw new NoPacketException();
+        }
+
         // Known values when fetching packets from the conveyor belt
         double FetchHeight = 1;
         double FetchArmExtension = 1;
-        String actualFetchedPacketRFID = conveyorBelt.loadingPositionPacketRFID;
         arm.fetchPackage(0, FetchHeight, FetchArmExtension, actualFetchedPacketRFID);
         if (!currentTargetPacketRFID.equals(actualFetchedPacketRFID)) {
             throw new Error("Wrong packet fetched at conveyor belt: " + currentTargetPacketRFID + " != " + actualFetchedPacketRFID);
@@ -43,6 +56,7 @@ public class Robot {
             throw new Error("No packet registered by weight sensor");
         System.out.println(this + " weight sensor senses packet");
 
+        conveyorBelt.loadingPositionPacketRFID = null;
         conveyorBelt.setObjectAtRobotLoadingPosition(null);
     }
 
@@ -50,10 +64,10 @@ public class Robot {
         moveToPosition(loadingPosition);
         Object[] loadingPositionForRobots = conveyorBelt.getRobotLoadingPosition();
         if (radar.hasFreeSpaceScan(loadingPositionForRobots)) {
-            System.out.println(this + " radar readings that loading position can be moved to");
+            System.out.println(this + " radar reads that loading position can be moved to");
             conveyorBelt.setObjectAtRobotLoadingPosition(this);
         } else {
-            System.out.println(this + " radar readings that loading position is occupied");
+            System.out.println(this + " radar reads that loading position is occupied");
             // handle occupied loading position case
         }
     }
