@@ -42,14 +42,14 @@ class CBC {
         logCBCStatus(robot + " is signaled to fetch packet from conveyor belt");
         try {
             robot.fetchPacketFromConveyorBelt(conveyorBelt);
-        } catch (NoPacketException e) {
+        } catch (NoPacketException | WrongPacketException e) {
             logCBCStatus("again signals CB to prepare packet " + packetRFID);
         conveyorBelt.preparePacketForFetching(packetRFID);
             logCBCStatus("CB signaled packet is transported to loading position");
             try {
                 robot.fetchPacketFromConveyorBelt(conveyorBelt);
-            } catch (NoPacketException e1) {
-                throw new Error("Despite retry, packet does not appear to robot at CB.");
+            } catch (NoPacketException | WrongPacketException e1) {
+                throw new Error("Despite retry, correct packet does not appear to robot at CB.");
             }
         }
         logCBCStatus(robot + " acknowledges packet is fetched. Loading position should be free again");

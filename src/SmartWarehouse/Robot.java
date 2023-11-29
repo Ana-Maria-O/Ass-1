@@ -30,7 +30,7 @@ public class Robot {
         conveyorBeltController.enqueueForFetching(this, packetRFID);
     }
 
-    public void fetchPacketFromConveyorBelt(ConveyorBelt conveyorBelt) throws NoPacketException {
+    public void fetchPacketFromConveyorBelt(ConveyorBelt conveyorBelt) throws NoPacketException, WrongPacketException {
         String actualFetchedPacketRFID = conveyorBelt.loadingPositionPacketRFID;
         if (actualFetchedPacketRFID == null) {
             System.out.println(this + " does not detect any packet at CB. Performing short wait");
@@ -43,6 +43,10 @@ public class Robot {
         if (conveyorBelt.loadingPositionPacketRFID == null) {
             System.out.println(this + " does still not detect any packet. Notifying CBC.");
             throw new NoPacketException();
+        }
+        if (!conveyorBelt.loadingPositionPacketRFID.equals(currentTargetPacketRFID)) {
+            System.out.println(this + " is presented with the wrong packet at the conveyor belt");
+            throw new WrongPacketException();
         }
 
         // Known values when fetching packets from the conveyor belt
