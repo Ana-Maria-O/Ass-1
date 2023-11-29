@@ -1,5 +1,6 @@
 package src.SmartWarehouse;
 public class RobotArm {
+    Packet storageLocation[];
     // The current position and status of the robot arm
     public double rotation = 0;
     public double height = 0;
@@ -31,8 +32,8 @@ public class RobotArm {
     public MotorsAndSensors.gripSensor gripSensor = motorsAndSensors.new gripSensor();
     public MotorsAndSensors.RFIDReader rfidReader = motorsAndSensors.new RFIDReader();
 
-    public void main(String[] args) {
-
+    public RobotArm(Packet[] storageLocation) {
+        this.storageLocation = storageLocation;
     }
 
     // Fetch the package with RFID rfid and at the position indicated by rotation,
@@ -51,7 +52,7 @@ public class RobotArm {
             // Retract the arm horizontally
             horizontalMotor.moveArm(0);
             // Place the package in the robot storage
-            placePackageInRobotStorage();
+            placePackageInRobotStorage(rfid);
         } else {
             // Notify WMS
             WMS.notify("The RFID of the package is not the same as the expected RFID");
@@ -74,11 +75,13 @@ public class RobotArm {
     }
 
     // Place a package in the robot storage
-    public void placePackageInRobotStorage() {
+    public void placePackageInRobotStorage(String rfid) {
         // Move the arm to the position of the storage
         moveArm(ROBOT_STORAGE_ROTATION, ROBOT_STORAGE_HEIGHT, ROBOT_STORAGE_LENGTH);
         // Ungrip the package
         ungripPackage();
+        storageLocation[0] = new Packet(rfid, 1);
+        System.out.println(rfid + " placed in robot's storage space");
     }
 
     public double[] computeNeededMovement(double rotation, double height, double length) {

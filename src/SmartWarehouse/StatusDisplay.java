@@ -1,7 +1,7 @@
 package src.SmartWarehouse;
 public class StatusDisplay {
     public static void main(String[] args) {
-        display(new RobotArm());
+        display(new RobotArm(new Packet[1]));
     }
 
     public static void display(RobotArm robotArm) {
