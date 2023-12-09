@@ -1,4 +1,4 @@
-package code;
+package src.SmartWarehouse;
 
 public class Grid {
 	private int width;

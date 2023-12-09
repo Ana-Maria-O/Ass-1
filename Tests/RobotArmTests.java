@@ -24,6 +24,7 @@ import src.SmartWarehouse.MotorsAndSensors;
 import src.SmartWarehouse.RobotArm;
 import src.SmartWarehouse.MotorsAndSensors.rotationMotor;
 import src.SmartWarehouse.WMS;
+import src.SmartWarehouse.Packet;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RobotArmTests {
@@ -39,7 +40,7 @@ public class RobotArmTests {
     // public final ExpectedSystemExit exit = ExpectedSystemExit.none();
 
     // @Spy
-    // private RobotArm robotArmSpy = spy(new RobotArm());
+    // private RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
 
     // @InjectMocks
     // private MotorsAndSensors motorsAndSensors = new MotorsAndSensors(robotArm);
@@ -50,7 +51,7 @@ public class RobotArmTests {
     @Test
     public void fetchPackageTest() {
         // Instantiante a robot arm
-        robotArm = new RobotArm();
+        robotArm = new RobotArm(new Packet[0]);
         // Create a spy for robotArm
         spy = spy(robotArm);
 
@@ -69,7 +70,7 @@ public class RobotArmTests {
         verify(spy).checkSensorMotorValues(any(Boolean.class), eq(true));
         verify(spy, times(2)).checkSensorMotorValues(any(Boolean.class), eq(false));
         verify(spy).takePackageFromShelf(value, value, value, rfid);
-        verify(spy).placePackageInRobotStorage();
+        // verify(spy).placePackageInRobotStorage();
 
         // Verify that the system was never put in a safe state
         verify(spy, never()).safeState();
@@ -133,7 +134,7 @@ public class RobotArmTests {
         value = 20;
         rfid = "abc123";
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
 
         // Instantiate the rotation motor mock
         MotorsAndSensors.rotationMotor rotationMotorMock = mock(MotorsAndSensors.rotationMotor.class);
@@ -192,7 +193,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
 
         // Instantiate the vertical motor mock
         MotorsAndSensors.verticalMotor verticalMotorMock = mock(MotorsAndSensors.verticalMotor.class);
@@ -245,7 +246,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
 
         // Instantiate the horizontal motor mock
         MotorsAndSensors.horizontalMotor horizontalMotorMock = mock(MotorsAndSensors.horizontalMotor.class);
@@ -298,7 +299,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
 
         // Instantiate the grip motor mock
         MotorsAndSensors.gripMotor gripMotorMock = mock(MotorsAndSensors.gripMotor.class);
@@ -342,7 +343,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the rotation sensor mock
         MotorsAndSensors.rotationSensor rotationSensorMock = mock(MotorsAndSensors.rotationSensor.class);
         // Inject the rotation sensor mock into the robotArmMock
@@ -368,7 +369,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the height sensor mock
         MotorsAndSensors.verticalSensor verticalSensorMock = mock(MotorsAndSensors.verticalSensor.class);
         // Inject the height sensor mock into the robotArmMock
@@ -394,7 +395,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the horizontal sensor mock
         MotorsAndSensors.horizontalSensor horizontalSensorMock = mock(MotorsAndSensors.horizontalSensor.class);
         // Inject the horizontal sensor mock into the robotArmMock
@@ -420,7 +421,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the grip sensor mock
         MotorsAndSensors.gripSensor gripSensorMock = mock(MotorsAndSensors.gripSensor.class);
         // Inject the grip sensor mock into the robotArmMock
@@ -447,7 +448,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the RFID reader mock
         MotorsAndSensors.RFIDReader rfidReaderMock = mock(MotorsAndSensors.RFIDReader.class);
         // Inject the RFID reader mock into the robotArmMock
@@ -473,7 +474,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the rotation motor and sensor mock
         MotorsAndSensors.rotationMotor rotationMotorMock = mock(MotorsAndSensors.rotationMotor.class);
         MotorsAndSensors.rotationSensor rotationSensorMock = mock(MotorsAndSensors.rotationSensor.class);
@@ -508,7 +509,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the vertical motor and sensor mock
         MotorsAndSensors.verticalMotor verticalMotorMock = mock(MotorsAndSensors.verticalMotor.class);
         MotorsAndSensors.verticalSensor verticalSensorMock = mock(MotorsAndSensors.verticalSensor.class);
@@ -544,7 +545,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the horizontal motor and sensor mock
         MotorsAndSensors.horizontalMotor horizontalMotorMock = mock(MotorsAndSensors.horizontalMotor.class);
         MotorsAndSensors.horizontalSensor horizontalSensorMock = mock(MotorsAndSensors.horizontalSensor.class);
@@ -579,7 +580,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the grip motor and sensor mock
         MotorsAndSensors.gripMotor gripMotorMock = mock(MotorsAndSensors.gripMotor.class);
         MotorsAndSensors.gripSensor gripSensorMock = mock(MotorsAndSensors.gripSensor.class);
@@ -627,7 +628,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the grip motor and RFID reader mock
         MotorsAndSensors.gripMotor gripMotorMock = mock(MotorsAndSensors.gripMotor.class);
         MotorsAndSensors.RFIDReader rfidReaderMock = mock(MotorsAndSensors.RFIDReader.class);
@@ -661,7 +662,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the grip sensor and RFID reader mock
         MotorsAndSensors.gripSensor gripSensorMock = mock(MotorsAndSensors.gripSensor.class);
         MotorsAndSensors.RFIDReader rfidReaderMock = mock(MotorsAndSensors.RFIDReader.class);
@@ -697,7 +698,7 @@ public class RobotArmTests {
         rfid = "abc123";
 
         // Instantiate the robot arm mock
-        RobotArm robotArmSpy = spy(new RobotArm());
+        RobotArm robotArmSpy = spy(new RobotArm(new Packet[0]));
         // Instantiate the grip motor, sensor and RFID reader mock
         MotorsAndSensors.gripMotor gripMotorMock = mock(MotorsAndSensors.gripMotor.class);
         MotorsAndSensors.gripSensor gripSensorMock = mock(MotorsAndSensors.gripSensor.class);

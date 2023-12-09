@@ -1,4 +1,4 @@
-package code;
+package src.SmartWarehouse;
 
 import java.util.Arrays;
 import java.util.HashMap;

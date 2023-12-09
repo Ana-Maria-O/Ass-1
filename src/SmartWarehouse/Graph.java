@@ -1,4 +1,4 @@
-package code;
+package src.SmartWarehouse;
 
 import java.util.ArrayList;
 import java.util.Arrays;

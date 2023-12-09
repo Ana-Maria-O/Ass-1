@@ -1,4 +1,4 @@
-package code;
+package src.SmartWarehouse;
 
 public class Node implements Comparable<Node> {
 	private int vertex;

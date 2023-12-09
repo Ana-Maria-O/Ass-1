@@ -3,6 +3,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
 import src.SmartWarehouse.MotorsAndSensors;
+import src.SmartWarehouse.Packet;
 import src.SmartWarehouse.RobotArm;
 import src.SmartWarehouse.MotorsAndSensors.MotorsSensors;
 
@@ -10,7 +11,7 @@ import src.SmartWarehouse.MotorsAndSensors.MotorsSensors;
 public class MotorsAndSensorsTests {
 
     // Instantiate a RobotArm object
-    RobotArm robotArm = new RobotArm();
+    RobotArm robotArm = new RobotArm(new Packet[0]);
 
     // Instantiate a MotorsSensors object
     MotorsAndSensors motorsAndSensors = new MotorsAndSensors(robotArm);
