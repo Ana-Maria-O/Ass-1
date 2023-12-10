@@ -1,32 +1,34 @@
 package src.SmartWarehouse;
-
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class Main {
-    static final int GRID_WIDTH = 6;
-    static final int GRID_HEIGHT = 7;
-    static final Set<Integer> OBSTACLES = new HashSet<>(Arrays.asList(7, 8, 28, 34, 20)); // Added an obstacle at cell 21
 
     public static void main(String[] args) {
+    	int GRID_WIDTH = 6;
+    	int GRID_HEIGHT = 7;
+        Set<Integer> OBSTACLES = new HashSet<>(Arrays.asList(1, 7, 8, 20, 26, 28, 34));
+        
         Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES);
-        int start = 0; // start position is cell 1 (index 0)
-        int end = 39; // end position is cell 40 (index 39)
+        int start = 0;  // Start position is 1 in 1-indexed
+        int target = 39; // Target position is 40 in 1-indexed
 
-        // create robot
-        List<Integer> globalPath = graph.dijkstra(start, end);
-        Map<Integer, List<Integer>> localPaths = new HashMap<>();
-      Robot robot = new Robot(start, globalPath, localPaths, graph, end);
+        // Compute all possible paths from each cell in the map to the target
+        Map<Integer, List<List<Integer>>> allPaths = graph.computeAllPathsToTarget(target);
 
-        // Simulate robot movement
-        while (robot.getCurrentPosition() != end) {
-            robot.moveToNext();
-        }
+        // Initialize the robot at the start position
+        Robot robot = new Robot(start, allPaths);
 
-        System.out.println("Robot movement complete.");
+        // Let the robot select the optimal path to the target...will be changed to the WMS
+        List<Integer> optimalPath = robot.selectOptimalPathToTarget(target);
+        System.out.print("Optimal Path from Cell " + (start + 1) + " to Target: ");
+        optimalPath.forEach(position -> System.out.print((position + 1) + " "));
+        System.out.println();
+
+        // The robot moves following the optimal path
+        robot.followPath(optimalPath);
     }
 }
