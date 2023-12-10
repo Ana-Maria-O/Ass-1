@@ -1,0 +1,29 @@
+Small readme for the project because I will be unavailable until Monday and I have a lot of comments for the implementation of Assignments 3 and 4. First, an important mention:
+
+## Comment your code as you write the code
+It's good practice and makes everyone's life easier. None of us should have to read a function someone else wrote to understand what it does. Commenting the different lines inside functions is very nice but not compulsory if you really want to make us waste time reading your code and trying to decipher it.
+
+## Assignment 3
+I sadly won't be able to do much work (at least on Sunday) for this assignment. The code on Saturday night for Task 3 was incorrect. I will once again outline the workflow for Task 3. I would have loved to do it myself but once again, I do not have time. I don't want this to feel like I'm mansplaining the assignment to you, but it was made evident to me that the assignment was misunderstood from the very beginning so I will be as detalied as possible to avoid this in the future. 
+
+1. In **the WMS class or some other placeholder class for this assignment** call the algorithm that computes a path from **each free point in the grid** (that is 1, 2, 3, 4, etc) to point 40. This should output **one** path for each free point that avoids the shelves. All of these paths should be saved in a data structure (ideally in the ```knowledgeBase class in the WMS```). This is only done once, at the very beginning of running the program.
+
+2. Once step 1 is done, have the robot start its movement. It looks for a precomputed path and start walking it. It should **check at each step if the next step is possible aka there are no obstacles on the next cell**. Implementing throwing obstacles can be very easy; after each step (or 2 steps or whatever you want) ask for input from user if they want to put an obstacle anywhere. You can do this however you want, this is just a solution that I could think of. Once the robot can detect obstacles and we can throw obstacles while the robot is moving we can start implementing Bug2. Bug2 should do these things:
+    - Find a way around an obstacle when it encounters one (a solution that i thought of: it can try computing a path from its current point to the next possible point on its path. So if the robot has path 1 2 3 4, it wants to move to 2 but there's something blocking 2, compute a dijkstra path from 1 to 3 where 2 has an obstacle. If 3 or some other point on its new path has an obstacle, do the same thing)
+    - If a robot needs to load a precomputed path from memory and it can't find one, handle that
+    - Please remember that when throwing obstacles, the assumption is that the obstacle does not block a robot from reaching its destination completely.
+
+3. These 2 steps conclude Task 3. Task 4 is more finnicky. Here was my original plan for how to solve it:
+    - First get 2 robots to move in tandem, irrespective of whether they collide or not. For now I wouldn't care about collisions between each other, just that they both move at the same time and that they both can successfully implement Bug2.
+    - Make the robots able to detect each other when they are either in neighboring cells or there is 1 cell between them
+    - Implement the communication algorithm. I haven't thought of a good way to do this yet. I was thinking something along the lines of they first check if their next step is in the same cell, then they decide randomly which one will go in the original cell and which one will consider that an obstacle and circumvent it. The communication protocol I think should end here. If after this 1 move they are still close enough to initiate communication, they will continue checking their next step until they are far away enough from each other.
+
+## Assignment 4
+There are a few things that I noticed in the code as it is now which will make assignment 4 take more time. I'm writing this just so that everyone is aware and we don't waste even more time for everyone to realize these issues on their own:
+
+- The classes are super bloated. There are several classes which are literally 3 lines long, and they each have their own file. This is *terrible* practice. Idk if it's worth merging some of them together so that we are not drowning in classes seeing as we only have less than 2 weeks left of this project, but i envision it will make our lives more difficult (it's already made me waste time). In the future please consider how much you're bloating the class files with your 3-line files.
+- The robot constructor has been modified to support assignment 3 only. We will have to re-make the constructor most likely. In general I think we'll need to go through each class and see if/how we need to modify it.
+- Methods in the robot class have been removed. Specifically the methods related to assignment 2. I'm not sure yet if these are going to be relevant for Assignment 4 but what I do know is that this was not a great move. You can always add more methods to a class, so don't delete methods if you're not absolutely sure that we won't need them later.
+- The robot class is the only one I noticed. More things may have been deleted/modified to only support assignment 3 (or 2, i didn't look at the code for that one in particular).
+
+This has been my ultra-long message. The takeaway is that the code hasn't been written with the consideration that other people will need to use it and understand it for future assignments. This makes it very hard to work with. I would recommend paying attention to best practices in the future, *especially* for assignment 4. All of us will need to code and we'll need to be efficient. Some methods and classes are almost entirely unreadable or unusable for Assignment 4 as they are right now.
