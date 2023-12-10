@@ -1,47 +1,107 @@
 package src.SmartWarehouse;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-
-import src.SmartWarehouse.Robot.Point;
+import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Robot {
-	// Helper class
-	public class Point {
-		public int x, y;
+	private int currentPosition; // Current position of the robot in the warehouse.
+	private int targetPosition; // Target position in the warehouse.
+	private Graph graph; // Warehouse map
+	private Random random; // Random number to select a random path
 
-		public Point(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
-
-	// Current position of the robot in the warehouse.
-	private int currentPosition;
-	private int targetPosition;
-//	private final Graph graph;
-	
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
 	private Map<Integer, List<List<Integer>>> allPaths;
 
 	// Constructor....
-	public Robot(int startPosition, Map<Integer, List<List<Integer>>> allPaths) {
+	public Robot(int startPosition, Map<Integer, List<List<Integer>>> allPaths, Graph graph) {
 		this.currentPosition = startPosition;
 		this.allPaths = allPaths;
+		this.graph = graph;
 	}
 
-	// Method to select the optimal path to a target position. The optimal path is
-	// the shortest path.
-	public List<Integer> selectOptimalPathToTarget(int target) {
-		// Retrieve all possible paths from the current position.
-		List<List<Integer>> possiblePaths = this.allPaths.getOrDefault(this.getCurrentPosition(), List.of());
+	// Method to select a path to the target. Flag is used to either generate random
+	// or optimal path
+	public List<Integer> selectPathToTarget(int start, int target, boolean flag) {
+		List<List<Integer>> possiblePaths = getAllPaths().getOrDefault(start, List.of());
+		if (flag) {
+			// Select a random path
+			random = new Random();
+			return possiblePaths.isEmpty() ? List.of() : possiblePaths.get(random.nextInt(possiblePaths.size()));
+		} else {
+			// Select the optimal (shortest) path
+			return possiblePaths.stream().min(Comparator.comparingInt(List::size)).orElse(List.of());
+		}
+	}
 
-		// Choose the shortest path among the possible paths. If no paths are available,
-		// return an empty list.
-		return possiblePaths.stream().min(Comparator.comparingInt(List::size)).orElse(List.of());
+	// Method to select a NEW path to the target without including the new obstacle.
+	// Flag is used to either generate random or optimal path
+	public List<Integer> selectPathToTargetObstacle(int start, int target, boolean flag, Graph graph) {
+		List<List<Integer>> possiblePaths = getAllPaths().getOrDefault(start, List.of());
+		possiblePaths = possiblePaths.stream().filter(path -> path.stream().noneMatch(graph::isObstacle))
+				.collect(Collectors.toList());
+
+		if (flag) {
+			// Select a random path
+			random = new Random();
+			return possiblePaths.isEmpty() ? List.of() : possiblePaths.get(random.nextInt(possiblePaths.size()));
+		} else {
+			// Select the optimal (shortest) path
+			return possiblePaths.stream().min(Comparator.comparingInt(List::size)).orElse(List.of());
+		}
+	}
+
+	public boolean moveToAdjacentNonObstacleCell(Graph graph) {
+		Set<Point> adjacentCells = graph.getAdjacentNonObstacleCells(vertexToPoint(currentPosition));
+		for (Point adjacentCell : adjacentCells) {
+			int adjacentCellId = pointToVertex(adjacentCell);
+			if (!graph.isObstacle(adjacentCellId)) {
+				setCurrentPosition(adjacentCellId);
+				System.out.println("Moved to adjacent cell (" + (adjacentCell.x + 1) + ", " + (adjacentCell.y + 1)
+						+ ") with ID: " + (adjacentCellId + 1));
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// Method to convert a point to a vertex ID
+	private int pointToVertex(Point point) {
+		return point.y * this.graph.getGridWidth() + point.x; // Calculate vertex ID based on point coordinates
+	}
+
+	// Method to convert a vertex ID to a point
+	private Point vertexToPoint(int vertex) {
+		int x = vertex % this.graph.getGridWidth(); // Calculate x-coordinate from vertex ID
+		int y = vertex / this.graph.getGridWidth(); // Calculate y-coordinate from vertex ID
+		return new Point(x, y);
+	}
+	// OLD Method to select the optimal path to a target position. The optimal path
+	// is
+	// the shortest path.
+	// public List<Integer> selectOptimalPathToTarget(int target) {
+	// // Retrieve all possible paths from the current position.
+	// List<List<Integer>> possiblePaths =
+	// this.allPaths.getOrDefault(this.getCurrentPosition(), List.of());
+	//
+	// // Choose the shortest path among the possible paths. If no paths are
+	// available,
+	// // return an empty list.
+	// return
+	// possiblePaths.stream().min(Comparator.comparingInt(List::size)).orElse(List.of());
+	// }
+
+	public Map<Integer, List<List<Integer>>> getAllPaths() {
+		return allPaths;
+	}
+
+	public void setAllPaths(Map<Integer, List<List<Integer>>> allPaths) {
+		this.allPaths = allPaths;
 	}
 
 	// Method to move the robot to a new position.
@@ -56,48 +116,15 @@ public class Robot {
 		// Loop through each position in the path.
 		for (int position : path) {
 			// Move the robot to the next position if it's not already there.
-			if (position != currentPosition) {
+			if (position != getCurrentPosition()) {
 				moveTo(position);
 			}
 		}
 	}
 
-	// Method to generate a line to the target point using Bresenham's line
-	// algorithm
-//	public List<Point> lineToTarget(Point from, Point to) {
-//		// Initialize start and end points, and calculate deltas
-//		int x0 = from.x, y0 = from.y, x1 = to.x, y1 = to.y;
-//		int dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
-//		// Determine the direction of the line
-//		int sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
-//		int err = dx + dy;
-//
-//		List<Point> line = new ArrayList<>();
-//		// Generate points for the line
-//		while (true) {
-//			line.add(new Point(x0, y0)); // Add the current point to the line
-//			// Check if the end point is reached
-//			if (x0 == x1 && y0 == y1) {
-//				break; // Exit the loop if the end/target point is reached
-//			}
-//			int e2 = 2 * err;
-//			// Adjust the points and error based on the direction of the line
-//			if (e2 >= dy) {
-//				err += dy;
-//				x0 += sx;
-//			}
-//			if (e2 <= dx) {
-//				err += dx;
-//				y0 += sy;
-//			}
-//
-//			// Check for potential infinite loop and throw exception if so
-//			if (line.size() > this.graph.getGridWidth() * this.graph.getGridHeight()) {
-//				throw new RuntimeException("lineToTarget generated too many points...something is wrong");
-//			}
-//		}
-//		return line;
-//	}
+	public List<Integer> recalculatePath(int target, Graph graph) {
+		return graph.dijkstra(currentPosition, target); // Recalculate path using Dijkstra's algorithm
+	}
 
 	// Method to update the robot's current position.
 	public void setCurrentPosition(int currentPosition) {
@@ -106,6 +133,14 @@ public class Robot {
 
 	// Method to get the robot's current position.
 	public int getCurrentPosition() {
-		return this.currentPosition;
+		return currentPosition;
+	}
+
+	public int getTargetPosition() {
+		return targetPosition;
+	}
+
+	public void setTargetPosition(int targetPosition) {
+		this.targetPosition = targetPosition;
 	}
 }
