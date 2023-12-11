@@ -3,9 +3,7 @@ package src.SmartWarehouse;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Scanner;
 
 public class Main {
 	static final int GRID_WIDTH = 6;
@@ -64,41 +62,6 @@ public class Main {
 		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 
 		System.out.println(graph.getMoveOptions(new Point(0,0)));
-
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-
-		robot.turnLeft();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-
-		robot.turnLeft();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-
-		robot.turnLeft();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-
-		robot.turnLeft();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-		
-		robot.turnRight();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-
-		robot.turnRight();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-
-		robot.turnRight();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
-
-		robot.turnRight();
-		System.out.println(robot.direction);
-		System.out.println(robot.getMoveOptions());
 
 		// System.exit(0);
 		// graph.addObstacle(12);
