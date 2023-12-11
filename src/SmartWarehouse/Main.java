@@ -12,7 +12,7 @@ public class Main {
 	static final int GRID_HEIGHT = 7;
 	static final Set<Integer> OBSTACLES = new HashSet<>(Arrays.asList(7, 8, 28, 34));
 
-	public static void printGraph(Graph graph, List<Robot> robots) {
+	public static void printGraph(Graph graph, List<Robot> robots, Set<Integer> dynamicObstacles) {
 		Set<Integer> robotPositions = new HashSet<>();
 		Set<Integer> robotTargets = new HashSet<>();
 		Set<Integer> robotPathsVerticies = new HashSet<>();
@@ -29,6 +29,8 @@ public class Main {
 				int vertexNum = graph.pointToVertexNum(new Point(x, y));
 				if (graph.isObstacle(vertexNum)) {
 					System.out.print("\033[91m" + "X" + "\u001B[0m");
+				} else if (dynamicObstacles.contains(vertexNum)) {
+					System.out.print("\033[40m" + "X" + "\u001B[0m");
 				} else if (robotPositions.contains(vertexNum)) {
 					System.out.print("\033[92m" + "R" + "\u001B[0m");
 				} else if (robotTargets.contains(vertexNum)) {
@@ -51,13 +53,15 @@ public class Main {
 		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
 		Robot robot = new Robot(start, graph);
 		robot.setTarget(target, allpaths);
-
 		robot.selectPathToTarget();
+		Set<Integer> dynamicObstacles = new HashSet<>(Arrays.asList(6));
+		robot.dynamicObstacles = dynamicObstacles;
+
 		List<Integer> robotPath = robot.getCurrentSelectedPath();
 		System.out.print("Current path: ");
 		System.out.println(robotPath);
 
-		printGraph(graph, Arrays.asList(robot));
+		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 
 		// graph.addObstacle(12);
 		// Scanner scanner = new Scanner(System.in);
@@ -74,7 +78,7 @@ public class Main {
 			// }
 
 			robot.takeStepOnPath();
-			printGraph(graph, Arrays.asList(robot));
+			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 
 			System.out.print("curr pos: ");
 			System.out.println(robot.getCurrentPosition());
