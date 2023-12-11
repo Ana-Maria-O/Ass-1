@@ -52,7 +52,7 @@ public class Main {
 		Robot robot = new Robot(start, graph);
 		robot.setTarget(target, allpaths);
 		robot.selectPathToTarget();
-		Set<Integer> dynamicObstacles = new HashSet<>(Arrays.asList(6));
+		Set<Integer> dynamicObstacles = new HashSet<>(Arrays.asList());
 		robot.dynamicObstacles = dynamicObstacles;
 
 		List<Integer> robotPath = robot.getCurrentSelectedPath();

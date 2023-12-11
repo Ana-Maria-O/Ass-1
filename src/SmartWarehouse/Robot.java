@@ -79,21 +79,21 @@ public class Robot {
 	}
 
 	// Method to move the robot to a new position.
-	public void moveTo(int newPosition) {
+	public void moveTo(int newPosition, String stepDir) {
+		if (stepDir.equals("left")) {
+			turnLeft();
+			System.out.println("Robot turning left");
+		}
+		else if (stepDir.equals("right")) {
+			turnRight();
+			System.out.println("Robot turning right");
+		}
+		else if (!stepDir.equals("forward"))
+			throw new Error("Invalid step direction: " + stepDir);
+			
 		System.out.println("Robot moving from " + (this.getCurrentPosition()) + " to " + (newPosition));
 		// Update the robot's current position.
 		setCurrentPosition(newPosition);
-	}
-
-	// Method for the robot to follow a given path.
-	public void followPath(List<Integer> path) {
-		// Loop through each position in the path.
-		for (int position : path) {
-			// Move the robot to the next position if it's not already there.
-			if (position != getCurrentPosition()) {
-				moveTo(position);
-			}
-		}
 	}
 
 	public List<Integer> recalculatePath(int target, Graph graph) {
@@ -184,12 +184,12 @@ public class Robot {
 	private int stringDirToDegree(String direction) {
 		if (direction.equals("up"))
 			return 90;
-		else if (direction.equals("right"))
+		else if (direction.equals("left"))
 			return 180;
 		else if (direction.equals("down"))
 			return 270;
-		else // left
-			return 360;
+		else // right
+			return 0;
 	}
 
 	// returns the relative direction of some vertex
@@ -247,12 +247,12 @@ public class Robot {
 		String stepDir = findStepDir(nextVertexNum);
 
 		System.out.println("Robot:");
-		System.out.println("Current position: " + currentPosition);
 		System.out.println("Next step: " + nextVertexNum);
 		System.out.println("Direction: " + direction);
-		System.out.println("Step direction: " + stepDir);
+		System.out.println("Rel. step direction: " + stepDir);
 		System.out.println("Move options: " + getMoveOptions());
 		System.out.println("Can move to next step: " + canMoveTo(nextVertexNum));
+		
 		if (graph.isObstacle(currentSelectedPath.get(currentPathIndex + 1))) {
 			// get move options
 			// can move
@@ -262,7 +262,7 @@ public class Robot {
 
 		if (currentPathIndex < currentSelectedPath.size()) {
 			currentPathIndex++;
-			moveTo(currentSelectedPath.get(currentPathIndex));
+			moveTo(currentSelectedPath.get(currentPathIndex), stepDir);
 		}
 	}
 
