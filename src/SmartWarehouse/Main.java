@@ -15,13 +15,14 @@ public class Main {
 	public static void printGraph(Graph graph, List<Robot> robots) {
 		Set<Integer> robotPositions = new HashSet<>();
 		Set<Integer> robotTargets = new HashSet<>();
+		Set<Integer> robotPathsVerticies = new HashSet<>();
 		if (robots != null) {
 			for (Robot robot : robots) {
 				robotPositions.add(robot.getCurrentPosition());
 				robotTargets.add(robot.getTargetPosition());
+				robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
 			}
 		}
-
 		System.out.println();
 		for (int y = 0; y < graph.getGridHeight(); y++) {
 			for (int x = 0; x < graph.getGridWidth(); x++) {
@@ -32,8 +33,9 @@ public class Main {
 					System.out.print("\033[92m" + "R" + "\u001B[0m");
 				} else if (robotTargets.contains(vertexNum)) {
 					System.out.print("\033[93m" + "T" + "\u001B[0m");
-				}
-				else {
+				} else if (robotPathsVerticies.contains(vertexNum)) {
+					System.out.print("\033[94m" + "*" + "\u001B[0m");
+				} else {
 					System.out.print("*");
 				}
 			}
@@ -45,11 +47,11 @@ public class Main {
 		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES);
 		int start = 0; // Start position is 1 in 1-indexed
 		int target = 39; // Target position is 40 in 1-indexed
-		
+
 		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
 		Robot robot = new Robot(start, graph);
 		robot.setTarget(target, allpaths);
-		
+
 		robot.selectPathToTarget();
 		List<Integer> robotPath = robot.getCurrentSelectedPath();
 		System.out.print("Current path: ");
@@ -57,7 +59,7 @@ public class Main {
 
 		printGraph(graph, Arrays.asList(robot));
 
-		//graph.addObstacle(12);
+		// graph.addObstacle(12);
 		// Scanner scanner = new Scanner(System.in);
 		while (!robot.pathIsComplete()) {
 			// System.out.println("Do you want to place an obstacle? (Y/N)");

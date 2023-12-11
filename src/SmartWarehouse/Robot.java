@@ -1,6 +1,7 @@
 package src.SmartWarehouse;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -14,6 +15,7 @@ public class Robot {
 	private Random random; // Random number to select a random path
 	List<Integer> currentSelectedPath;
 	int currentPathIndex = 0;
+	Set<Integer> dynamicObstacles = new HashSet<>();
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
