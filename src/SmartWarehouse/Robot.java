@@ -20,10 +20,14 @@ public class Robot {
 	private List<List<Integer>> allPaths;
 
 	// Constructor....
-	public Robot(int startPosition, List<List<Integer>> allPaths, Graph graph) {
+	public Robot(int startPosition, Graph graph) {
 		this.currentPosition = startPosition;
-		this.allPaths = allPaths;
 		this.graph = graph;
+	}
+
+	public void setTarget(int targetPosition, List<List<Integer>> allPaths) {
+		this.targetPosition = targetPosition;
+		this.allPaths = allPaths;
 	}
 
 	public boolean moveToAdjacentNonObstacleCell(Graph graph) {
@@ -111,6 +115,12 @@ public class Robot {
 	}
 
 	public void takeStepOnPath() {
+		if (graph.isObstacle(currentSelectedPath.get(currentPathIndex + 1))) {
+			// get move options
+			// can move
+			// true: --> hug border
+			// false error
+		}
 		if (currentPathIndex < currentSelectedPath.size()) {
 			currentPathIndex++;
 			moveTo(currentSelectedPath.get(currentPathIndex));
