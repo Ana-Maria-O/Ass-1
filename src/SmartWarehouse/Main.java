@@ -100,7 +100,7 @@ public class Main {
 		System.out.println(robot.direction);
 		System.out.println(robot.getMoveOptions());
 
-		System.exit(0);
+		// System.exit(0);
 		// graph.addObstacle(12);
 		// Scanner scanner = new Scanner(System.in);
 		while (!robot.pathIsComplete()) {
@@ -117,9 +117,6 @@ public class Main {
 
 			robot.takeStepOnPath();
 			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
-
-			System.out.print("curr pos: ");
-			System.out.println(robot.getCurrentPosition());
 		}
 		System.exit(0);
 		// Dijkstra example ends here

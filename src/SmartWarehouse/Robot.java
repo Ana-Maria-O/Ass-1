@@ -126,6 +126,10 @@ public class Robot {
 		return moveOptions;
 	}
 
+	// Returns a map of the robot's move options. Keys are "forward", "left", and
+	// "right".
+	// values are booleans representing whether the robot can move in that
+	// direction.
 	public HashMap<String, Boolean> getMoveOptions() {
 		Point point = vertexToPoint(currentPosition);
 		HashMap<String, Boolean> graphMoveOptions = graph.getMoveOptions(point);
@@ -142,29 +146,92 @@ public class Robot {
 			moveOptions = translateMoveOptions(left, down, up);
 		else // right
 			moveOptions = translateMoveOptions(right, up, down);
+		
+		moveOptions.put("backward", false);
 		return moveOptions;
 	}
 
 	public void turnLeft() {
-		if (direction.equals("up"))
-			direction = "left";
-		else if (direction.equals("left"))
-			direction = "down";
-		else if (direction.equals("down"))
-			direction = "right";
-		else // right
-			direction = "up";
+		direction = shiftLeft(direction);
 	}
 
 	public void turnRight() {
+		direction = shiftRight(direction);
+	}
+
+	public String shiftLeft(String direction) {
 		if (direction.equals("up"))
-			direction = "right";
-		else if (direction.equals("right"))
-			direction = "down";
+			return "left";
+		else if (direction.equals("left"))
+			return "down";
 		else if (direction.equals("down"))
-			direction = "left";
+			return "right";
+		else // right
+			return "up";
+	}
+
+	public String shiftRight(String direction) {
+		if (direction.equals("up"))
+			return "right";
+		else if (direction.equals("right"))
+			return "down";
+		else if (direction.equals("down"))
+			return "left";
 		else // left
-			direction = "up";
+			return "up";
+	}
+
+	private int stringDirToDegree(String direction) {
+		if (direction.equals("up"))
+			return 90;
+		else if (direction.equals("right"))
+			return 180;
+		else if (direction.equals("down"))
+			return 270;
+		else // left
+			return 360;
+	}
+
+	// returns the relative direction of some vertex
+	// main use is the find the direction of the next step on the path
+	public String findStepDir(Integer nextVertexNum) {
+		Point point = vertexToPoint(nextVertexNum);
+		Point robotPos = vertexToPoint(currentPosition);
+		// plane direction is the fixed direction of the plane
+		String planeDirection;
+		if (point.x < robotPos.x)
+			planeDirection = "left";
+		else if (point.x > robotPos.x)
+			planeDirection = "right";
+		else if (point.y < robotPos.y)
+			planeDirection = "up";
+		else // point.y > robotPos.y
+			planeDirection = "down";
+
+		int robotDirdegree = stringDirToDegree(direction);
+		int planeDirDegree = stringDirToDegree(planeDirection);
+		int degreeDiff = planeDirDegree - robotDirdegree;
+		String stepDir;
+		if (degreeDiff == 0)
+			stepDir = "forward";
+		else if (degreeDiff == 90 || degreeDiff == -270)
+			stepDir = "left";
+		else if (degreeDiff == 180 || degreeDiff == -180)
+			stepDir = "backward";
+		else if (degreeDiff == 270 || degreeDiff == -90)
+			stepDir = "right";
+		else
+			throw new Error("Invalid degree");
+		
+		return stepDir;
+	}
+
+	// checks: if the vertex is an obstacle and if the robot can turn into it
+	public boolean canMoveTo(Integer nextVertexNum) {
+		boolean isObstacle = graph.isObstacle(nextVertexNum) || dynamicObstacles.contains(nextVertexNum);
+		String stepDir = findStepDir(nextVertexNum);
+		HashMap<String, Boolean> moveOptions = getMoveOptions();
+		return moveOptions.get(stepDir) && !isObstacle;
 	}
 
 	public Integer getNextStepOnPath() {
@@ -176,12 +243,23 @@ public class Robot {
 	}
 
 	public void takeStepOnPath() {
+		Integer nextVertexNum = getNextStepOnPath();
+		String stepDir = findStepDir(nextVertexNum);
+
+		System.out.println("Robot:");
+		System.out.println("Current position: " + currentPosition);
+		System.out.println("Next step: " + nextVertexNum);
+		System.out.println("Direction: " + direction);
+		System.out.println("Step direction: " + stepDir);
+		System.out.println("Move options: " + getMoveOptions());
+		System.out.println("Can move to next step: " + canMoveTo(nextVertexNum));
 		if (graph.isObstacle(currentSelectedPath.get(currentPathIndex + 1))) {
 			// get move options
 			// can move
 			// true: --> hug border
 			// false error
 		}
+
 		if (currentPathIndex < currentSelectedPath.size()) {
 			currentPathIndex++;
 			moveTo(currentSelectedPath.get(currentPathIndex));
