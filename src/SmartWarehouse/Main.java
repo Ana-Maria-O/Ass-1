@@ -18,13 +18,27 @@ public class Main {
 		int start = 0; // Start position is 1 in 1-indexed
 		int target = 39; // Target position is 40 in 1-indexed
 
-		Map<Integer, List<List<Integer>>> allpaths = graph.computeAllPathsToTarget(target);
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
 		Robot robot = new Robot(start, allpaths, graph);
 		// Initialize the robot at the start position
-//		Robot robot = new Robot(start, graph.computeAllPathsToTarget(target), graph);
 
-		// Get the initial path for the robot
-		List<Integer> robotPath = robot.selectPathToTarget(start, target, false); // false for optimal path
+		robot.selectPathToTarget();
+		List<Integer> robotPath = robot.getCurrentSelectedPath();
+		System.out.print("Current path: ");
+		System.out.println(robotPath);
+
+		while (!robot.pathIsComplete()) {
+			System.out.print("current pos: ");
+			System.out.println(robot.getCurrentPosition());
+
+			robot.takeStepOnPath();
+			System.out.print("current pos: ");
+			System.out.println(robot.getCurrentPosition());
+		}
+		System.exit(0);
+		// Dijkstra example ends here
+		
+
 		System.out.println("Robot moved to cell " + (robotPath.get(0) + 1));
 		Scanner scanner = new Scanner(System.in);
 		for (int i = 1; i < robotPath.size(); i++) {
@@ -59,7 +73,7 @@ public class Main {
 					} else {
 						// Recompute the path from the robot's new current position considering the new
 						// obstacle
-						robotPath = robot.selectPathToTargetObstacle(robot.getCurrentPosition(), target, false, graph);
+						// do bug2
 						i = robotPath.indexOf(robot.getCurrentPosition()) - 1; // Update the loop index
 						continue;
 					}

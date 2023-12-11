@@ -116,42 +116,16 @@ public class Graph {
 		return path;
 	}
 
-	// Compute all paths to a target for each cell in the graph.
-	public Map<Integer, List<List<Integer>>> computeAllPathsToTarget(int target) {
-		Map<Integer, List<List<Integer>>> allPathsMap = new HashMap<>();
-		// Iterate over all nodes, avoiding obstacles.
-		for (int i = 0; i < getGridWidth() * this.gridHeight; i++) {
+	public List<List<Integer>> computeAllPathsToTarget(int target) {
+		List<List<Integer>> allPaths = new ArrayList<>();
+		for (int i = 0; i < getGridWidth() * getGridHeight(); i++) {
+			// Can't start on an obstacle
 			if (!obstacles.contains(i)) {
-				List<List<Integer>> paths = new ArrayList<>();
-				// Find all paths from cell 'i' to the target.
-				findAllPaths(i, target, paths, new ArrayList<>(), new HashSet<>());
-				allPathsMap.put(i, paths);
+				List<Integer> path = dijkstra(i, target);
+				allPaths.add(path);
 			}
 		}
-		return allPathsMap;
-	}
-
-	// Recursive method to find all paths from a current cell to the target.
-	private void findAllPaths(int current, int target, List<List<Integer>> paths, List<Integer> currentPath,
-			Set<Integer> visited) {
-		visited.add(current);
-		currentPath.add(current);
-
-		// Base case: if current is the target, add the path to the list.
-		if (current == target) {
-			paths.add(new ArrayList<>(currentPath));
-		} else {
-			// Explore all unvisited neighbors.
-			for (Node neighbor : this.adjList.get(current)) {
-				if (!visited.contains(neighbor.getVertex())) {
-					findAllPaths(neighbor.getVertex(), target, paths, currentPath, visited);
-				}
-			}
-		}
-
-		// Remove the current cell from the path and mark it as unvisited.
-		currentPath.remove(currentPath.size() - 1);
-		visited.remove(current);
+		return allPaths;
 	}
 	
     public Set<Point> getAdjacentNonObstacleCells(Point point) {
