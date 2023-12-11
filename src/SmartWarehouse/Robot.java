@@ -1,6 +1,7 @@
 package src.SmartWarehouse;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ public class Robot {
 	List<Integer> currentSelectedPath;
 	int currentPathIndex = 0;
 	Set<Integer> dynamicObstacles = new HashSet<>();
+	String direction = "right";
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
@@ -114,6 +116,63 @@ public class Robot {
 
 	public void setTargetPosition(int targetPosition) {
 		this.targetPosition = targetPosition;
+	}
+
+	private HashMap<String, Boolean> translateMoveOptions(boolean forward, boolean left, boolean right) {
+		HashMap<String, Boolean> moveOptions = new HashMap<>();
+		moveOptions.put("forward", forward);
+		moveOptions.put("left", left);
+		moveOptions.put("right", right);
+		return moveOptions;
+	}
+
+	public HashMap<String, Boolean> getMoveOptions() {
+		Point point = vertexToPoint(currentPosition);
+		HashMap<String, Boolean> graphMoveOptions = graph.getMoveOptions(point);
+		HashMap<String, Boolean> moveOptions;
+		boolean up = graphMoveOptions.get("up");
+		boolean down = graphMoveOptions.get("down");
+		boolean left = graphMoveOptions.get("left");
+		boolean right = graphMoveOptions.get("right");
+		if (direction.equals("up"))
+			moveOptions = translateMoveOptions(up, left, right);
+		else if (direction.equals("down"))
+			moveOptions = translateMoveOptions(down, right, left);
+		else if (direction.equals("left"))
+			moveOptions = translateMoveOptions(left, down, up);
+		else // right
+			moveOptions = translateMoveOptions(right, up, down);
+		return moveOptions;
+	}
+
+	public void turnLeft() {
+		if (direction.equals("up"))
+			direction = "left";
+		else if (direction.equals("left"))
+			direction = "down";
+		else if (direction.equals("down"))
+			direction = "right";
+		else // right
+			direction = "up";
+	}
+
+	public void turnRight() {
+		if (direction.equals("up"))
+			direction = "right";
+		else if (direction.equals("right"))
+			direction = "down";
+		else if (direction.equals("down"))
+			direction = "left";
+		else // left
+			direction = "up";
+	}
+
+	public Integer getNextStepOnPath() {
+		return currentSelectedPath.get(currentPathIndex + 1);
+	}
+
+	public void stepTowardsTarget() {
+		takeStepOnPath();
 	}
 
 	public void takeStepOnPath() {

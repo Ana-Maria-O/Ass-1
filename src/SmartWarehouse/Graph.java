@@ -128,23 +128,21 @@ public class Graph {
 		return allPaths;
 	}
 	
-    public Set<Point> getAdjacentNonObstacleCells(Point point) {
-        Set<Point> neighbors = new HashSet<>();
-        // Check and add each adjacent point if it's not an obstacle
-        addIfNonObstacle(neighbors, new Point(point.x - 1, point.y)); // Check left
-        addIfNonObstacle(neighbors, new Point(point.x + 1, point.y)); // Check right
-        addIfNonObstacle(neighbors, new Point(point.x, point.y - 1)); // Check up
-        addIfNonObstacle(neighbors, new Point(point.x, point.y + 1)); // Check down
-        return neighbors;
+    public HashMap<String, Boolean> getMoveOptions(Point point) {
+        HashMap<String, Boolean> direction_map = new HashMap<>();
+        direction_map.put("left", isFree(new Point(point.x - 1, point.y)));
+        direction_map.put("right", isFree(new Point(point.x + 1, point.y)));
+        direction_map.put("up", isFree(new Point(point.x, point.y - 1)));
+        direction_map.put("down", isFree(new Point(point.x, point.y + 1)));
+		return direction_map;
     }
 
-    private void addIfNonObstacle(Set<Point> neighbors, Point point) {
+    private Boolean isFree(Point point) {
         if (point.x >= 0 && point.x < gridWidth && point.y >= 0 && point.y < gridHeight) {
-            int cellId = pointToVertex(point);
-            if (!isObstacle(cellId)) {
-                neighbors.add(point);
-            }
+            int vertexNum = pointToVertexNum(point);
+            return !isObstacle(vertexNum);
         }
+		return false;
     }
 
     // Convert a vertex ID to a Point object
@@ -155,7 +153,7 @@ public class Graph {
     }
 
     // Convert a Point object to a vertex ID
-    public int pointToVertex(Point point) {
+    public int pointToVertexNum(Point point) {
         return point.y * gridWidth + point.x;
     }
 	public List<List<Node>> getAdjList() {

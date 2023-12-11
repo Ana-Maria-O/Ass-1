@@ -63,6 +63,44 @@ public class Main {
 
 		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 
+		System.out.println(graph.getMoveOptions(new Point(0,0)));
+
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		robot.turnLeft();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		robot.turnLeft();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		robot.turnLeft();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		robot.turnLeft();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+		
+		robot.turnRight();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		robot.turnRight();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		robot.turnRight();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		robot.turnRight();
+		System.out.println(robot.direction);
+		System.out.println(robot.getMoveOptions());
+
+		System.exit(0);
 		// graph.addObstacle(12);
 		// Scanner scanner = new Scanner(System.in);
 		while (!robot.pathIsComplete()) {
