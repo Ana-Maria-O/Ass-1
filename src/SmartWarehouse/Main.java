@@ -3,6 +3,7 @@ package src.SmartWarehouse;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Scanner;
 
@@ -17,31 +18,18 @@ public class Main {
 		int start = 0; // Start position is 1 in 1-indexed
 		int target = 39; // Target position is 40 in 1-indexed
 
+		Map<Integer, List<List<Integer>>> allpaths = graph.computeAllPathsToTarget(target);
+		Robot robot = new Robot(start, allpaths, graph);
 		// Initialize the robot at the start position
-		Robot robot = new Robot(start, graph.computeAllPathsToTarget(target), graph);
+//		Robot robot = new Robot(start, graph.computeAllPathsToTarget(target), graph);
 
 		// Get the initial path for the robot
 		List<Integer> robotPath = robot.selectPathToTarget(start, target, false); // false for optimal path
-
+		System.out.println("Robot moved to cell " + (robotPath.get(0) + 1));
 		Scanner scanner = new Scanner(System.in);
-		for (int i = 0; i < robotPath.size(); i++) {
+		for (int i = 1; i < robotPath.size(); i++) {
 			int currentStep = robotPath.get(i);
-			robot.setCurrentPosition(currentStep);
-			System.out.println("Robot moved to cell " + (currentStep + 1));
 
-			// Check if the next step is an obstacle
-			if ((i + 1) < robotPath.size() && graph.isObstacle(robotPath.get(i + 1))) {
-				System.out.println("Obstacle detected at cell " + (robotPath.get(i + 1) + 1));
-				if (!robot.moveToAdjacentNonObstacleCell(graph)) {
-					System.out.println("No adjacent non-obstacle cells available. Unable to proceed.");
-					break;
-				} else {
-					// Recompute the path from the robot's new current position considering the new obstacle
-					robotPath = robot.selectPathToTargetObstacle(robot.getCurrentPosition(), target, flag, graph);
-					i = robotPath.indexOf(robot.getCurrentPosition()) - 1; // Update the loop index
-					continue;
-				}
-			}
 			if (currentStep != target) {
 				// Comment if you DONT want to ask the user
 				System.out.println("Do you want to place an obstacle? (Y/N)");
@@ -50,18 +38,41 @@ public class Main {
 					System.out.println("Enter the cell ID to place an obstacle:");
 					int obstacleCellId = scanner.nextInt() - 1; // Adjust for 1-indexed input
 					scanner.nextLine();
-
 					if (!graph.isObstacle(obstacleCellId)) {
 						graph.addObstacle(obstacleCellId);
 						flag = false;
 					}
 				}
-			} else {
+
+				// Check if the next step is an obstacle
+				if ((i + 1) < robotPath.size() && graph.isObstacle(robotPath.get(i + 1))
+						|| graph.isObstacle(robotPath.get(i))) {
+					if (graph.isObstacle(robotPath.get(i + 1))) {
+						System.out.println("Obstacle detected at cell " + (robotPath.get(i + 1) + 1));
+					} else {
+						System.out.println("Obstacle detected at cell " + (robotPath.get(i) + 1));
+					}
+
+					if (!robot.moveToAdjacentNonObstacleCell(graph)) {
+						System.out.println("No adjacent non-obstacle cells available. Unable to proceed.");
+						break;
+					} else {
+						// Recompute the path from the robot's new current position considering the new
+						// obstacle
+						robotPath = robot.selectPathToTargetObstacle(robot.getCurrentPosition(), target, false, graph);
+						i = robotPath.indexOf(robot.getCurrentPosition()) - 1; // Update the loop index
+						continue;
+					}
+				}
+				robot.setCurrentPosition(currentStep);
+				System.out.println("Robot moved to cell " + (currentStep + 1));
+			} else if (currentStep == target)  {
+				robot.setCurrentPosition(currentStep); // Move to the final cell/target.
+				System.out.println();
+				System.out.println("Robot moved to cell " + (currentStep + 1));
 				System.out.println();
 				System.out.println("Robot reached its destination.");
 			}
-
-//			
 //			if (flag) {
 ////			if (response.equalsIgnoreCase("Y")) {
 ////				System.out.println("Enter the cell ID to place an obstacle:");
