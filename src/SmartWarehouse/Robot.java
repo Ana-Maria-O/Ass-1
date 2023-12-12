@@ -19,6 +19,7 @@ public class Robot {
 	Set<Integer> dynamicObstacles = new HashSet<>();
 	String direction = "right"; // absolute direction on the plane: up, down, left, right
 	boolean bug2IsActive = false;
+	List<Integer> remainingPathToFindUsingBug2; // the path we should get onto again using bug2
 	String bug2SearchDirection;
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
@@ -77,14 +78,20 @@ public class Robot {
 		}
 		else if (!stepDir.equals("forward"))
 			throw new Error("Invalid step direction: " + stepDir);
-			
+		
 		System.out.println("Robot moving forward from " + (this.getCurrentPosition()) + " to " + (newPosition));
+		System.out.println("Direction: " + direction);
 		// Update the robot's current position.
 		setCurrentPosition(newPosition);
 	}
 
 	// moves forward given the current absolute plane direction
 	public void moveForward() {
+		int newVertexNumPosition = getForwardVertexNum();
+		moveTo(newVertexNumPosition, "forward");
+	}
+
+	private Integer getForwardVertexNum() {
 		Point point = vertexToPoint(currentPosition);
 		if (direction.equals("up"))
 			point.y--;
@@ -95,8 +102,35 @@ public class Robot {
 		else // right
 			point.x++;
 		
-		int newVertexNumPosition = pointToVertex(point);
-		moveTo(newVertexNumPosition, "forward");
+		return pointToVertex(point);
+	}
+
+	private Integer getLeftVertexNum() {
+		Point point = vertexToPoint(currentPosition);
+		if (direction.equals("up"))
+			point.x--;
+		else if (direction.equals("down"))
+			point.x++;
+		else if (direction.equals("left"))
+			point.y++;
+		else // right
+			point.y--;
+		
+		return pointToVertex(point);
+	}
+
+	private Integer getRightVertexNum() {
+		Point point = vertexToPoint(currentPosition);
+		if (direction.equals("up"))
+			point.x++;
+		else if (direction.equals("down"))
+			point.x--;
+		else if (direction.equals("left"))
+			point.y--;
+		else // right
+			point.y++;
+		
+		return pointToVertex(point);
 	}
 
 	public List<Integer> recalculatePath(int target, Graph graph) {
@@ -242,30 +276,98 @@ public class Robot {
 	}
 
 	public void stepTowardsTarget() {
-		takeStepOnPath();
+		if (bug2IsActive)
+			bug2algorithmStep();
+		else
+			takeStepOnPath();
 	}
 
-	public void takeStepOnPath() {
+	// Tries to step forward on the planned path
+	// If it can't, it activates bug2
+	private void takeStepOnPath() {
 		Integer nextVertexNum = getNextStepOnPath();
 		String stepDir = findStepDir(nextVertexNum);
 
-		System.out.println("Robot:");
-		System.out.println("Next step: " + nextVertexNum);
 		System.out.println("Direction: " + direction);
 		System.out.println("Rel. step direction: " + stepDir);
 		System.out.println("Move options: " + getMoveOptions());
 		System.out.println("Can move to next step: " + canMoveTo(nextVertexNum));
 		
-		if (graph.isObstacle(currentSelectedPath.get(currentPathIndex + 1))) {
-			// get move options
-			// can move
-			// true: --> hug border
-			// false error
+		if (!canMoveTo(nextVertexNum)) {
+			// make sure we are turned towards the next step before we start bug2
+			if (stepDir.equals("backward")) {
+				System.out.println("NOTE: turning fully around");
+				turnLeft();
+				turnLeft();
+			} else if (stepDir.equals("left")) {
+				turnLeft();
+				System.out.println("Turning left for bug2");
+			} else if (stepDir.equals("right")) {
+				turnRight();
+				System.out.println("Turning right for bug2");
+			}
+			System.out.println("Direction: " + direction);
+			activateBug2();
 		}
-
-		if (currentPathIndex < currentSelectedPath.size()) {
+		else {
 			currentPathIndex++;
 			moveTo(currentSelectedPath.get(currentPathIndex), stepDir);
+		}
+	}
+
+	private void activateBug2() {
+		System.out.println("bug2 activated");
+		bug2IsActive = true;
+		remainingPathToFindUsingBug2 = currentSelectedPath.subList(currentPathIndex + 2, currentSelectedPath.size());
+	}
+
+	private void deactivateBug2() {
+		currentPathIndex = currentSelectedPath.indexOf(currentPosition);
+		bug2IsActive = false;
+		bug2SearchDirection = null;
+		remainingPathToFindUsingBug2 = null;
+		System.out.println("BUG2 DEACTIVATED. PATH FOUND");
+	}
+
+	public void bug2algorithmStep() {
+		if (bug2SearchDirection == null) {
+			System.out.println("SEARCH DIRECTION IS NOW LEFT");
+			bug2SearchDirection = "left";
+			turnRight();
+		}
+		if (bug2SearchDirection.equals("left")) {
+			if (remainingPathToFindUsingBug2.contains(currentPosition)) {
+				// robot should be back on the path
+				deactivateBug2();
+			}
+			// robot should try to hug the obstacle on its left
+			else if (canMoveTo(getLeftVertexNum())) {
+				System.out.println("bug2 move left");
+				turnLeft();
+				moveForward();
+			} else if (canMoveTo(getForwardVertexNum())) {
+				System.out.println("bug2 move forward");
+				moveForward();
+			} else {
+				System.out.println("SEARCH DIRECTION IS NOW RIGHT");
+				bug2SearchDirection = "right";
+				turnRight();
+				turnRight();
+			}
+		} else if (bug2SearchDirection.equals("right")) {
+			if (remainingPathToFindUsingBug2.contains(currentPosition)) {
+				// robot should be back on the path
+				deactivateBug2();
+			}
+			// robot should try to hug the obstacle on its right
+			else if (canMoveTo(getRightVertexNum())) {
+				turnRight();
+				moveForward();
+			} else if (canMoveTo(getForwardVertexNum())) {
+				moveForward();
+			} else {
+				throw new Error("bug2 is unable to find a path");
+			}
 		}
 	}
 

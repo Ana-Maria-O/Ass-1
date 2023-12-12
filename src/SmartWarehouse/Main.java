@@ -43,7 +43,8 @@ public class Main {
 		}
 	}
 
-	public static void main(String[] args) {
+	// no dynamic obstacles
+	public static void scenario1() {
 		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES);
 		int start = 0; // Start position is 1 in 1-indexed
 		int target = 39; // Target position is 40 in 1-indexed
@@ -58,30 +59,65 @@ public class Main {
 		List<Integer> robotPath = robot.getCurrentSelectedPath();
 		System.out.print("Current path: ");
 		System.out.println(robotPath);
-
 		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 
-		System.out.println(graph.getMoveOptions(new Point(0,0)));
-
-		// System.exit(0);
-		// graph.addObstacle(12);
-		// Scanner scanner = new Scanner(System.in);
 		while (!robot.pathIsComplete()) {
-			// System.out.println("Do you want to place an obstacle? (Y/N)");
-			// String response = scanner.nextLine();
-			// if (response.equalsIgnoreCase("Y")) {
-			// System.out.println("Enter the cell ID to place an obstacle:");
-			// int obstacleCellId = scanner.nextInt();
-			// scanner.nextLine();
-			// if (!graph.isObstacle(obstacleCellId)) {
-			// graph.addObstacle(obstacleCellId);
-			// }
-			// }
-
-			robot.takeStepOnPath();
+			robot.stepTowardsTarget();
 			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 		}
-		System.exit(0);
-		// Dijkstra example ends here
+	}
+	
+	// need to round obstacles using bug2
+	public static void scenario2() {
+		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES);
+		int start = 0; // Start position is 1 in 1-indexed
+		int target = 39; // Target position is 40 in 1-indexed
+
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
+		Robot robot = new Robot(start, graph);
+		robot.setTarget(target, allpaths);
+		robot.selectPathToTarget();
+		Set<Integer> dynamicObstacles = new HashSet<>(Arrays.asList(6,31));
+		robot.dynamicObstacles = dynamicObstacles;
+
+		List<Integer> robotPath = robot.getCurrentSelectedPath();
+		System.out.print("Current path: ");
+		System.out.println(robotPath);
+		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+
+		while (!robot.pathIsComplete()) {
+			robot.stepTowardsTarget();
+			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		}
+	}
+	
+	// bug2 gets stuck
+	public static void scenario3() {
+		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES);
+		int start = 0; // Start position is 1 in 1-indexed
+		int target = 39; // Target position is 40 in 1-indexed
+
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
+		Robot robot = new Robot(start, graph);
+		robot.setTarget(target, allpaths);
+		robot.selectPathToTarget();
+		Set<Integer> dynamicObstacles = new HashSet<>(Arrays.asList(6,3,31));
+		robot.dynamicObstacles = dynamicObstacles;
+
+		List<Integer> robotPath = robot.getCurrentSelectedPath();
+		System.out.print("Current path: ");
+		System.out.println(robotPath);
+		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+
+		while (!robot.pathIsComplete()) {
+			robot.stepTowardsTarget();
+			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		}
+	}
+
+	public static void main(String[] args) {
+		// scenario1();
+		scenario2();
+		// scenario3();
 	}
 }
