@@ -16,7 +16,7 @@ public class Robot {
 	List<Integer> remainingPathToFindUsingBug2; // the path we should get onto again using bug2
 	private boolean stayStoppedToAvoidCollisionBug2;
 	String bug2SearchDirection;
-	String name;
+	String name = "R1";
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
