@@ -18,6 +18,7 @@ public class Robot {
 	int currentPathIndex = 0;
 	String direction = "right"; // absolute direction on the plane: up, down, left, right
 	boolean bug2IsActive = false;
+	Robot otherRobotInBug2;
 	List<Integer> remainingPathToFindUsingBug2; // the path we should get onto again using bug2
 	String bug2SearchDirection;
 
@@ -314,6 +315,10 @@ public class Robot {
 			}
 			System.out.println("Direction: " + direction);
 			activateBug2();
+			Object obstacle = graph.dynamicObstacles.get(getForwardVertexNum());
+			// if (obstacle instanceof Robot) {
+			// 	(Robot)
+			// }
 		}
 	}
 
