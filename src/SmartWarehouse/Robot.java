@@ -16,7 +16,6 @@ public class Robot {
 	private Random random; // Random number to select a random path
 	List<Integer> currentSelectedPath;
 	int currentPathIndex = 0;
-	Set<Integer> dynamicObstacles = new HashSet<>();
 	String direction = "right"; // absolute direction on the plane: up, down, left, right
 	boolean bug2IsActive = false;
 	List<Integer> remainingPathToFindUsingBug2; // the path we should get onto again using bug2
@@ -30,6 +29,7 @@ public class Robot {
 	public Robot(int startPosition, Graph graph) {
 		this.currentPosition = startPosition;
 		this.graph = graph;
+		graph.dynamicObstacles.put(startPosition, this);
 	}
 
 	public void setTarget(int targetPosition, List<List<Integer>> allPaths) {
@@ -82,7 +82,9 @@ public class Robot {
 		System.out.println("Robot moving forward from " + (this.getCurrentPosition()) + " to " + (newPosition));
 		System.out.println("Direction: " + direction);
 		// Update the robot's current position.
+		graph.dynamicObstacles.remove(currentPosition, this);
 		setCurrentPosition(newPosition);
+		graph.dynamicObstacles.put(currentPosition, this);
 	}
 
 	// moves forward given the current absolute plane direction
@@ -265,7 +267,7 @@ public class Robot {
 
 	// checks: if the vertex is an obstacle and if the robot can turn into it
 	public boolean canMoveTo(Integer nextVertexNum) {
-		boolean isObstacle = graph.isObstacle(nextVertexNum) || dynamicObstacles.contains(nextVertexNum);
+		boolean isObstacle = graph.isObstacle(nextVertexNum) || graph.dynamicObstacles.containsKey(nextVertexNum);
 		String stepDir = findStepDir(nextVertexNum);
 		HashMap<String, Boolean> moveOptions = getMoveOptions();
 		return moveOptions.get(stepDir) && !isObstacle;
@@ -293,7 +295,11 @@ public class Robot {
 		System.out.println("Move options: " + getMoveOptions());
 		System.out.println("Can move to next step: " + canMoveTo(nextVertexNum));
 		
-		if (!canMoveTo(nextVertexNum)) {
+		//graph.dynamicObstacles.containsKey(nextVertexNum)
+		if (canMoveTo(nextVertexNum)) {
+			currentPathIndex++;
+			moveTo(currentSelectedPath.get(currentPathIndex), stepDir);
+		} else {
 			// make sure we are turned towards the next step before we start bug2
 			if (stepDir.equals("backward")) {
 				System.out.println("NOTE: turning fully around");
@@ -308,10 +314,6 @@ public class Robot {
 			}
 			System.out.println("Direction: " + direction);
 			activateBug2();
-		}
-		else {
-			currentPathIndex++;
-			moveTo(currentSelectedPath.get(currentPathIndex), stepDir);
 		}
 	}
 
