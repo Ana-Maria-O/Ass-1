@@ -131,7 +131,6 @@ public class Main {
 	public static void scenario4() {
 		Map<Integer, Object> dynamicObstacles = new HashMap<>();
 		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
-		// Starting point of the firt robot
 		int r1start = 0; // Start position is 1 in 1-indexed
 		int r1target = 39; // Target position is 40 in 1-indexed
 		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(r1target);
@@ -139,11 +138,9 @@ public class Main {
 		robot1.setTarget(r1target, allpaths);
 		robot1.selectPathToTarget();
 
-		// int r2start = 27;
 		int r2start = 21;
 		Robot robot2 = new Robot(r2start, graph, "left", "r2");
 		robot2.setTarget(r1start, allpaths);
-		robot2.currentSelectedPath = Arrays.asList(r2start, 26, 25, 24, 18, 12, 6, 0);
 		robot2.currentSelectedPath = Arrays.asList(r2start, 20, 19, 18, 12, 6, 0);
 
 		System.out.println("Current paths: ");
@@ -166,7 +163,6 @@ public class Main {
 	public static void scenario5() {
 		Map<Integer, Object> dynamicObstacles = new HashMap<>();
 		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
-		// Starting point of the firt robot
 		int r1start = 0; // Start position is 1 in 1-indexed
 		int r1target = 39; // Target position is 40 in 1-indexed
 		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(r1target);
