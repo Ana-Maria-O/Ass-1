@@ -17,7 +17,9 @@ public class Robot {
 	List<Integer> currentSelectedPath;
 	int currentPathIndex = 0;
 	Set<Integer> dynamicObstacles = new HashSet<>();
-	String direction = "right";
+	String direction = "right"; // absolute direction on the plane: up, down, left, right
+	boolean bug2IsActive = false;
+	String bug2SearchDirection;
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
@@ -91,9 +93,25 @@ public class Robot {
 		else if (!stepDir.equals("forward"))
 			throw new Error("Invalid step direction: " + stepDir);
 			
-		System.out.println("Robot moving from " + (this.getCurrentPosition()) + " to " + (newPosition));
+		System.out.println("Robot moving forward from " + (this.getCurrentPosition()) + " to " + (newPosition));
 		// Update the robot's current position.
 		setCurrentPosition(newPosition);
+	}
+
+	// moves forward given the current absolute plane direction
+	public void moveForward() {
+		Point point = vertexToPoint(currentPosition);
+		if (direction.equals("up"))
+			point.y--;
+		else if (direction.equals("down"))
+			point.y++;
+		else if (direction.equals("left"))
+			point.x--;
+		else // right
+			point.x++;
+		
+		int newVertexNumPosition = pointToVertex(point);
+		moveTo(newVertexNumPosition, "forward");
 	}
 
 	public List<Integer> recalculatePath(int target, Graph graph) {
