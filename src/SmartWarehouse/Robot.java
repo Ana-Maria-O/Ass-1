@@ -36,21 +36,6 @@ public class Robot {
 		this.allPaths = allPaths;
 	}
 
-	public boolean moveToAdjacentNonObstacleCell(Graph graph) {
-		Set<Point> adjacentCells = graph.getAdjacentNonObstacleCells(vertexToPoint(currentPosition));
-		for (Point adjacentCell : adjacentCells) {
-			int adjacentCellId = pointToVertex(adjacentCell);
-			if (!graph.isObstacle(adjacentCellId)) {
-				setCurrentPosition(adjacentCellId);
-				System.out.println("Moved to adjacent cell (" + (adjacentCell.x + 1) + ", " + (adjacentCell.y + 1)
-						+ ") with ID: " + (adjacentCellId + 1));
-
-				return true;
-			}
-		}
-		return false;
-	}
-
 	// Method to convert a point to a vertex ID
 	private int pointToVertex(Point point) {
 		return point.y * this.graph.getGridWidth() + point.x; // Calculate vertex ID based on point coordinates
