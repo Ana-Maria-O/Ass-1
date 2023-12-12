@@ -1,19 +1,13 @@
 package src.SmartWarehouse;
 
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Robot {
 	private int currentPosition; // Current position of the robot in the warehouse.
 	private int targetPosition; // Target position in the warehouse.
 	private Graph graph; // Warehouse map
-	private Random random; // Random number to select a random path
 	List<Integer> currentSelectedPath;
 	int currentPathIndex = 0;
 	String direction = "right"; // absolute direction on the plane: up, down, left, right
