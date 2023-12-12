@@ -130,29 +130,67 @@ public class Main {
 	// Robots colliding into each other
 	public static void scenario4() {
 		Map<Integer, Object> dynamicObstacles = new HashMap<>();
-		// List<Integer> unknownStaticObstacles = Arrays.asList(3,6,31);
-		// for (Integer vertexNum : unknownStaticObstacles) {
-		// 	dynamicObstacles.put(vertexNum, new Object());
-		// }
 		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
 		// Starting point of the firt robot
-		int start = 5; // Start position is 1 in 1-indexed
-		// int start2 = ;
-		int target = 39; // Target position is 40 in 1-indexed
+		int r1start = 0; // Start position is 1 in 1-indexed
+		int r1target = 39; // Target position is 40 in 1-indexed
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(r1target);
+		Robot robot1 = new Robot(r1start, graph, "down", "r1");
+		robot1.setTarget(r1target, allpaths);
+		robot1.selectPathToTarget();
 
-		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
-		Robot robot = new Robot(start, graph);
-		robot.setTarget(target, allpaths);
-		robot.selectPathToTarget();
+		// int r2start = 27;
+		int r2start = 21;
+		Robot robot2 = new Robot(r2start, graph, "left", "r2");
+		robot2.setTarget(r1start, allpaths);
+		robot2.currentSelectedPath = Arrays.asList(r2start, 26, 25, 24, 18, 12, 6, 0);
+		robot2.currentSelectedPath = Arrays.asList(r2start, 20, 19, 18, 12, 6, 0);
 
-		List<Integer> robotPath = robot.getCurrentSelectedPath();
-		System.out.print("Current path: ");
-		System.out.println(robotPath);
-		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		System.out.println("Current paths: ");
+		System.out.println(robot1.getCurrentSelectedPath());
+		System.out.println(robot2.getCurrentSelectedPath());
+		printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
 
-		while (!robot.pathIsComplete()) {
-			robot.stepTowardsTarget();
-			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		while (!robot1.pathIsComplete() && !robot2.pathIsComplete()) {
+			System.out.println("R1 POS: " + robot1.getCurrentPosition());
+			robot1.stepTowardsTarget();
+			System.out.println("R2 POS: " + robot2.getCurrentPosition());
+			robot2.stepTowardsTarget();
+
+			printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
+		}
+	}
+	
+	// task 4
+	// Robots colliding into each other
+	public static void scenario5() {
+		Map<Integer, Object> dynamicObstacles = new HashMap<>();
+		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
+		// Starting point of the firt robot
+		int r1start = 0; // Start position is 1 in 1-indexed
+		int r1target = 39; // Target position is 40 in 1-indexed
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(r1target);
+		Robot robot1 = new Robot(r1start, graph, "down", "r1");
+		robot1.setTarget(r1target, allpaths);
+		robot1.selectPathToTarget();
+
+		int r2start = 27;
+		Robot robot2 = new Robot(r2start, graph, "left", "r2");
+		robot2.setTarget(r1start, allpaths);
+		robot2.currentSelectedPath = Arrays.asList(r2start, 26, 25, 24, 18, 12, 6, 0);
+
+		System.out.println("Current paths: ");
+		System.out.println(robot1.getCurrentSelectedPath());
+		System.out.println(robot2.getCurrentSelectedPath());
+		printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
+
+		while (!robot1.pathIsComplete() && !robot2.pathIsComplete()) {
+			System.out.println("R1 POS: " + robot1.getCurrentPosition());
+			robot1.stepTowardsTarget();
+			System.out.println("R2 POS: " + robot2.getCurrentPosition());
+			robot2.stepTowardsTarget();
+
+			printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
 		}
 	}
 
@@ -160,6 +198,7 @@ public class Main {
 		// scenario1();
 		// scenario2();
 		// scenario3();
-		scenario4();
+		// scenario4();
+		scenario5();
 	}
 }

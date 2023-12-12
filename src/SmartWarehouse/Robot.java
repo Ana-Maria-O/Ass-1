@@ -20,7 +20,9 @@ public class Robot {
 	boolean bug2IsActive = false;
 	Robot otherRobotInBug2;
 	List<Integer> remainingPathToFindUsingBug2; // the path we should get onto again using bug2
+	private boolean stayStoppedToAvoidCollisionBug2;
 	String bug2SearchDirection;
+	String name;
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
@@ -31,6 +33,12 @@ public class Robot {
 		this.currentPosition = startPosition;
 		this.graph = graph;
 		graph.dynamicObstacles.put(startPosition, this);
+	}
+
+	public Robot(int startPosition, Graph graph, String direction, String name) {
+		this(startPosition, graph);
+		this.direction = direction;
+		this.name = name;
 	}
 
 	public void setTarget(int targetPosition, List<List<Integer>> allPaths) {
@@ -72,16 +80,15 @@ public class Robot {
 		if (stepDir.equals("left")) {
 			turnLeft();
 			System.out.println("Robot turning left");
-		}
-		else if (stepDir.equals("right")) {
+			System.out.println("Direction: " + direction);
+		} else if (stepDir.equals("right")) {
 			turnRight();
 			System.out.println("Robot turning right");
-		}
-		else if (!stepDir.equals("forward"))
+			System.out.println("Direction: " + direction);
+		} else if (!stepDir.equals("forward"))
 			throw new Error("Invalid step direction: " + stepDir);
-		
+
 		System.out.println("Robot moving forward from " + (this.getCurrentPosition()) + " to " + (newPosition));
-		System.out.println("Direction: " + direction);
 		// Update the robot's current position.
 		graph.dynamicObstacles.remove(currentPosition, this);
 		setCurrentPosition(newPosition);
@@ -104,7 +111,7 @@ public class Robot {
 			point.x--;
 		else // right
 			point.x++;
-		
+
 		return pointToVertex(point);
 	}
 
@@ -118,7 +125,7 @@ public class Robot {
 			point.y++;
 		else // right
 			point.y--;
-		
+
 		return pointToVertex(point);
 	}
 
@@ -132,7 +139,7 @@ public class Robot {
 			point.y--;
 		else // right
 			point.y++;
-		
+
 		return pointToVertex(point);
 	}
 
@@ -186,7 +193,7 @@ public class Robot {
 			moveOptions = translateMoveOptions(left, down, up);
 		else // right
 			moveOptions = translateMoveOptions(right, up, down);
-		
+
 		moveOptions.put("backward", false);
 		return moveOptions;
 	}
@@ -262,7 +269,7 @@ public class Robot {
 			stepDir = "right";
 		else
 			throw new Error("Invalid degree");
-		
+
 		return stepDir;
 	}
 
@@ -279,10 +286,17 @@ public class Robot {
 	}
 
 	public void stepTowardsTarget() {
-		if (bug2IsActive)
-			bug2algorithmStep();
-		else
-			takeStepOnPath();
+		if (!stayStoppedToAvoidCollisionBug2) {
+			if (bug2IsActive) {
+				System.out.println("\n" + name + ": does bug2 step");
+				bug2algorithmStep();
+			} else {
+				System.out.println("\n" + name + ": does path step");
+				takeStepOnPath();
+			}
+		} else {
+			System.out.println("\n" + name +": stays stopped");
+		}
 	}
 
 	// Tries to step forward on the planned path
@@ -293,10 +307,9 @@ public class Robot {
 
 		System.out.println("Direction: " + direction);
 		System.out.println("Rel. step direction: " + stepDir);
-		System.out.println("Move options: " + getMoveOptions());
 		System.out.println("Can move to next step: " + canMoveTo(nextVertexNum));
-		
-		//graph.dynamicObstacles.containsKey(nextVertexNum)
+
+		// graph.dynamicObstacles.containsKey(nextVertexNum)
 		if (canMoveTo(nextVertexNum)) {
 			currentPathIndex++;
 			moveTo(currentSelectedPath.get(currentPathIndex), stepDir);
@@ -314,18 +327,31 @@ public class Robot {
 				System.out.println("Turning right for bug2");
 			}
 			System.out.println("Direction: " + direction);
-			activateBug2();
 			Object obstacle = graph.dynamicObstacles.get(getForwardVertexNum());
-			// if (obstacle instanceof Robot) {
-			// 	(Robot)
-			// }
+			activateBug2(obstacle);
 		}
 	}
 
-	private void activateBug2() {
+	public void stopToAvoidCollisionForBug2() {
+		System.out.println(this.name + ": received stop signal");
+		stayStoppedToAvoidCollisionBug2 = true;
+	}
+
+	public void continueCollsionAvertedBug2() {
+		System.out.println(this.name + ": received continue signal");
+		stayStoppedToAvoidCollisionBug2 = false;
+	}
+
+	private void activateBug2(Object obstacle) {
 		System.out.println("bug2 activated");
 		bug2IsActive = true;
 		remainingPathToFindUsingBug2 = currentSelectedPath.subList(currentPathIndex + 2, currentSelectedPath.size());
+		if (obstacle instanceof Robot) {
+			System.out.println("telling other robot to stop");
+			otherRobotInBug2 = (Robot) obstacle;
+			otherRobotInBug2.stopToAvoidCollisionForBug2();
+			
+		}
 	}
 
 	private void deactivateBug2() {
@@ -333,6 +359,8 @@ public class Robot {
 		bug2IsActive = false;
 		bug2SearchDirection = null;
 		remainingPathToFindUsingBug2 = null;
+		otherRobotInBug2.continueCollsionAvertedBug2();
+		otherRobotInBug2 = null;
 		System.out.println("BUG2 DEACTIVATED. PATH FOUND");
 	}
 
