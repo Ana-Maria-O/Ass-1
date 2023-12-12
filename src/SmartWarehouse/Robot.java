@@ -353,8 +353,10 @@ public class Robot {
 		bug2IsActive = false;
 		bug2SearchDirection = null;
 		remainingPathToFindUsingBug2 = null;
-		otherRobotInBug2.continueCollsionAvertedBug2();
-		otherRobotInBug2 = null;
+		if (otherRobotInBug2 != null) {
+			otherRobotInBug2.continueCollsionAvertedBug2();
+			otherRobotInBug2 = null;
+		}
 		System.out.println("BUG2 DEACTIVATED. PATH FOUND");
 	}
 
