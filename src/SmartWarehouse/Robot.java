@@ -8,6 +8,7 @@ public class Robot {
 	private int currentPosition; // Current position of the robot in the warehouse.
 	private int targetPosition; // Target position in the warehouse.
 	private Graph graph; // Warehouse map
+	private int batteryLevel; // Battery level
 	List<Integer> currentSelectedPath;
 	int currentPathIndex = 0;
 	String direction = "right"; // absolute direction on the plane: up, down, left, right
@@ -27,6 +28,8 @@ public class Robot {
 		this.currentPosition = startPosition;
 		this.graph = graph;
 		graph.dynamicObstacles.put(startPosition, this);
+		// Set the Battery level to 100%
+		this.batteryLevel = 100;
 	}
 
 	public Robot(int startPosition, Graph graph, String direction, String name) {
@@ -404,5 +407,15 @@ public class Robot {
 
 	public boolean pathIsComplete() {
 		return currentPathIndex >= currentSelectedPath.size() - 1;
+	}
+
+	// Getter function for the battery level
+	public int getBatteryLevel() {
+		return batteryLevel;
+	}
+
+	// Setter function for the battery level
+	public void setBatteryLevel(int newBatteryLevel) {
+		batteryLevel = newBatteryLevel;
 	}
 }
