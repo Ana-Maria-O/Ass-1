@@ -1,126 +1,43 @@
 package src.SmartWarehouse;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Random;
 
 public class Robot {
-	public class Point {
-		public int x, y;
+	private int currentPosition; // Current position of the robot in the warehouse.
+	private int targetPosition; // Target position in the warehouse.
+	private Graph graph; // Warehouse map
+	List<Integer> currentSelectedPath;
+	int currentPathIndex = 0;
+	String direction = "right"; // absolute direction on the plane: up, down, left, right
+	boolean bug2IsActive = false;
+	Robot otherRobotInBug2;
+	List<Integer> remainingPathToFindUsingBug2; // the path we should get onto again using bug2
+	private boolean stayStoppedToAvoidCollisionBug2;
+	String bug2SearchDirection;
+	String name = "R1";
 
-		public Point(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
+	// A map of all paths in the warehouse. The key is a position, and the value is
+	// a list of paths (each path is a list of integers representing positions).
+	private List<List<Integer>> allPaths;
 
-	static boolean flag = false; // Still testing with the flag....Bug2 thingy
-	private int currentPosition; // Stores the current position of the robot
-	private List<Integer> globalPath; // Stores the global path for the robot as a list of integers
-	private Map<Integer, List<Integer>> localPaths; // Stores local paths with their corresponding starting points
-	private Graph graph; // An instance of Graph class used for navigating
-	private int target; // The target position the robot aims to reach
-
-	public Robot(int startPosition, List<Integer> globalPath, Map<Integer, List<Integer>> localPaths, Graph graph,
-			int target) {
+	// Constructor....
+	public Robot(int startPosition, Graph graph) {
 		this.currentPosition = startPosition;
-		this.globalPath = globalPath;
-		this.localPaths = localPaths;
 		this.graph = graph;
-		this.target = target;
+		graph.dynamicObstacles.put(startPosition, this);
 	}
 
-	// Method to find adjacent cells for a given line
-	public void findAdjacentCellsForLine(List<Point> line) {
-		for (int i = 0; i < line.size(); i++) { // Loop through each point in the line
-			Point point = line.get(i); // Get the current point from the line
-			Set<Point> adjacentCells = getAdjacentNonObstacleCells(point); // Get non-obstacle adjacent cells
-
-			// Print the non-obstacle adjacent cells for the current point
-			System.out.println("Non-obstacle adjacent cells for point (" + point.x + ", " + point.y + "):");
-			for (Point adjacentPoint : adjacentCells) { // Loop through each adjacent cell
-				int cellId = pointToVertex(adjacentPoint); // Convert point to vertex ID
-				System.out.println("Cell (" + adjacentPoint.x + ", " + adjacentPoint.y + ") with ID: " + (cellId + 1));
-			}
-		}
+	public Robot(int startPosition, Graph graph, String direction, String name) {
+		this(startPosition, graph);
+		this.direction = direction;
+		this.name = name;
 	}
 
-	// Method to get adjacent non-obstacle cells for a given point
-	private Set<Point> getAdjacentNonObstacleCells(Point point) {
-		Set<Point> neighbors = new HashSet<>();
-		// Check and add each adjacent point if it's not an obstacle
-		addIfNonObstacle(neighbors, new Point(point.x - 1, point.y)); // Check left
-		addIfNonObstacle(neighbors, new Point(point.x + 1, point.y)); // Check right
-		addIfNonObstacle(neighbors, new Point(point.x, point.y - 1)); // Check up
-		addIfNonObstacle(neighbors, new Point(point.x, point.y + 1)); // Check down
-		return neighbors;
-	}
-
-	// Method to add a point to the set of neighbors if it is not an obstacle
-	private void addIfNonObstacle(Set<Point> neighbors, Point point) {
-		// Check if the point is within the grid boundaries
-		if (point.x >= 0 && point.x < this.graph.getGridWidth() && point.y >= 0
-				&& point.y < this.graph.getGridHeight()) {
-			int cellId = pointToVertex(point);
-			// Add the point to neighbors if it is not an obstacle
-			if (!graph.isObstacle(cellId)) {
-				neighbors.add(point);
-			}
-		}
-	}
-
-	// Method to get adjacent cells for a given point
-	private Set<Point> getAdjacentCells(Point point) {
-		Set<Point> neighbors = new HashSet<>();
-		// Check and add each adjacent point
-		if (point.x > 0)
-			neighbors.add(new Point(point.x - 1, point.y)); // Check left
-		if (point.x < this.graph.getGridWidth() - 1)
-			neighbors.add(new Point(point.x + 1, point.y)); // Check right
-		if (point.y > 0)
-			neighbors.add(new Point(point.x, point.y - 1)); // Check up
-		if (point.y < this.graph.getGridHeight() - 1)
-			neighbors.add(new Point(point.x, point.y + 1)); // Check down
-		return neighbors;
-	}
-
-	// Method to generate a line to the target point using Bresenham's line algorithm
-	public List<Point> lineToTarget(Point from, Point to) {
-		// Initialize start and end points, and calculate deltas
-		int x0 = from.x, y0 = from.y, x1 = to.x, y1 = to.y;
-		int dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
-		// Determine the direction of the line
-		int sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
-		int err = dx + dy;
-
-		List<Point> line = new ArrayList<>();
-		// Generate points for the line
-		while (true) {
-			line.add(new Point(x0, y0)); // Add the current point to the line
-			// Check if the end point is reached
-			if (x0 == x1 && y0 == y1) {
-				break; // Exit the loop if the end/target point is reached
-			}
-			int e2 = 2 * err;
-			// Adjust the points and error based on the direction of the line
-			if (e2 >= dy) {
-				err += dy;
-				x0 += sx;
-			}
-			if (e2 <= dx) {
-				err += dx;
-				y0 += sy;
-			}
-
-			// Check for potential infinite loop and throw exception if so
-			if (line.size() > this.graph.getGridWidth() * this.graph.getGridHeight()) {
-				throw new RuntimeException("lineToTarget generated too many points...something is wrong");
-			}
-		}
-		return line;
+	public void setTarget(int targetPosition, List<List<Integer>> allPaths) {
+		this.targetPosition = targetPosition;
+		this.allPaths = allPaths;
 	}
 
 	// Method to convert a point to a vertex ID
@@ -135,161 +52,357 @@ public class Robot {
 		return new Point(x, y);
 	}
 
-	// Recalculate the local path for the robot
-	public void recalculateLocalPath() {
-		// Find the shortest path from the current position to the target
-		List<Integer> newLocalPath = this.graph.dijkstra(this.currentPosition, this.target);
-		// Update the local paths map with the new path
-		this.localPaths.put(this.currentPosition, newLocalPath);
+	public List<List<Integer>> getAllPaths() {
+		return allPaths;
 	}
 
-	// Method to navigate around an obstacle
-	private void circumnavigateObstacle() {
-		System.out.println("Circumnavigating obstacle...");
-
-		// Convert the current position and target to points
-		Point currentPoint = vertexToPoint(currentPosition);
-		Point targetPoint = vertexToPoint(target);
-		// Generate a line to the target
-		List<Point> mLine = lineToTarget(currentPoint, targetPoint);
-
-		boolean isBackOnLine = false; // Flag to check if the robot is back on the intended line
-		// Loop until the robot is back on the line
-		while (!isBackOnLine) {
-			// Get non-obstacle adjacent cells for the current position
-			Set<Point> adjacentCells = getAdjacentNonObstacleCells(currentPoint);
-			// Choose the best adjacent point to move towards
-			Point nextPoint = chooseBestAdjacentPoint(adjacentCells, mLine);
-
-			// Check if no viable path is found
-			if (nextPoint == null) {
-				System.out.println("No viable path found around the obstacle.");
-				return;
-			}
-
-			// Move to the next point and update the current position
-			moveTo(pointToVertex(nextPoint));
-			currentPoint = nextPoint;
-
-			// Check if the robot is back on the intended line and not on an obstacle
-			if (mLine.contains(currentPoint) && !graph.isObstacle(pointToVertex(currentPoint))) {
-				isBackOnLine = true;
-			}
-		}
+	public List<Integer> getCurrentSelectedPath() {
+		return currentSelectedPath;
 	}
 
-	// Method to choose the best point from a set of adjacent points based on its proximity to a given line.
-	private Point chooseBestAdjacentPoint(Set<Point> adjacentCells, List<Point> mLine) {
-	    Point bestPoint = null;
-	    double minDistanceToLine = Double.MAX_VALUE;
-
-	    // Iterate through each point in the set of adjacent cells.
-	    for (Point cell : adjacentCells) {
-	        // Calculate the distance of the current point from the mLine.
-	        double distance = distanceToLine(cell, mLine);
-	        // Check if the current point's distance to the line is less than the minimum distance found so far.
-	        if (distance < minDistanceToLine) {
-	            // Update the minimum distance to the current point's distance.
-	            minDistanceToLine = distance;
-	            // Update the best point to the current point.
-	            bestPoint = cell;
-	        }
-	    }
-	    return bestPoint;
+	public void selectPathToTarget() {
+		currentSelectedPath = allPaths.get(currentPosition);
+		currentPathIndex = 0;
 	}
 
-
-	public void moveTo(int newPosition) {
-	    // Check if the new position is valid (within bounds) and not an obstacle.
-	    if (isValidPosition(newPosition) && !graph.isObstacle(newPosition)) {
-	        // If valid, show the movement. 
-	        System.out.println("Moving from " + (currentPosition + 1) + " to " + (newPosition + 1));
-	        currentPosition = newPosition; // Update the current position.
-	    } else {
-	        // If not valid, show that the move cannot be made.
-	        System.out.println(
-	                "Cannot move to position: " + (newPosition + 1) + ". It's either an obstacle or out of bounds.");
-	    }
+	public void setAllPaths(List<List<Integer>> allPaths) {
+		this.allPaths = allPaths;
 	}
 
+	// Method to move the robot to a new position.
+	public void moveTo(int newPosition, String stepDir) {
+		if (stepDir.equals("left")) {
+			turnLeft();
+			System.out.println("Robot turning left");
+			System.out.println("Direction: " + direction);
+		} else if (stepDir.equals("right")) {
+			turnRight();
+			System.out.println("Robot turning right");
+			System.out.println("Direction: " + direction);
+		} else if (!stepDir.equals("forward"))
+			throw new Error("Invalid step direction: " + stepDir);
 
-	private boolean isValidPosition(int position) {
-	    // Convert the position to x and y coordinates based on grid dimensions.
-	    int x = position % this.graph.getGridHeight(), y = position / this.graph.getGridWidth();
-	    // Check if the x and y coordinates are within the bounds of the grid.
-	    return x >= 0 && x < this.graph.getGridWidth() && y >= 0 && y < this.graph.getGridHeight();
+		System.out.println("Robot moving forward from " + (this.getCurrentPosition()) + " to " + (newPosition));
+		// Update the robot's current position.
+		graph.dynamicObstacles.remove(currentPosition, this);
+		setCurrentPosition(newPosition);
+		graph.dynamicObstacles.put(currentPosition, this);
 	}
 
-
-	private double distanceToLine(Point point, List<Point> line) {
-	    double minDistance = Double.MAX_VALUE;
-	    // Iterate through each point in the line.
-	    for (Point linePoint : line) {
-	        // Calculate the Euclidean distance from the point to the current line point.
-	        double distance = Math.sqrt(Math.pow(linePoint.x - point.x, 2) + Math.pow(linePoint.y - point.y, 2));
-	        // Update minDistance if the current distance is smaller.
-	        if (distance < minDistance) {
-	            minDistance = distance;
-	        }
-	    }
-	    return minDistance;
+	// moves forward given the current absolute plane direction
+	public void moveForward() {
+		int newVertexNumPosition = getForwardVertexNum();
+		moveTo(newVertexNumPosition, "forward");
 	}
 
+	private Integer getForwardVertexNum() {
+		Point point = vertexToPoint(currentPosition);
+		if (direction.equals("up"))
+			point.y--;
+		else if (direction.equals("down"))
+			point.y++;
+		else if (direction.equals("left"))
+			point.x--;
+		else // right
+			point.x++;
 
-	public void moveToNext() {
-	        recalculateLocalPath();
-
-	    // Load the local path for the current position.
-	    List<Integer> currentLocalPath = this.localPaths.get(this.currentPosition);
-
-	    // Check if there is a valid local path.
-	    if (currentLocalPath != null && !currentLocalPath.isEmpty()) {
-	        // Iterate through each cell in the local path.
-	        for (int i = 0; i < currentLocalPath.size(); i++) {
-	            int nextPosition = currentLocalPath.get(i);
-
-	            // Check for obstacles at the next cell.
-	            if (this.graph.isObstacle(nextPosition)) {
-	                System.out.println("Obstacle detected at position: " + (nextPosition + 1) + " now will navigate!");
-	                circumnavigateObstacle();
-	                return;
-	            }
-
-	            // Move to the next cell if it is different from the current position.
-	            if (nextPosition != this.currentPosition) {
-	                System.out.println("Robot moving from " + (this.currentPosition + 1) + " to " + (nextPosition + 1));
-	                this.currentPosition = nextPosition;
-	                break;
-	            }
-	        }
-	    } else {
-	        System.out.println("No valid path available from current position...rip");
-	    }
+		return pointToVertex(point);
 	}
 
-	public Map<Integer, List<Integer>> getLocalPaths() {
-	    Map<Integer, List<Integer>> sortedLocalPaths = new LinkedHashMap<>();
-	    // Iterate through each cell in the global path.
-	    for (int cell : this.globalPath) {
-	        // Retrieve the local path for the cell.
-	        List<Integer> localPath = this.localPaths.get(cell);
-	        // Add the local path to the sorted map if it exists.
-	        if (localPath != null) {
-	            sortedLocalPaths.put(cell, new ArrayList<>(localPath));
-	        }
-	    }
-	    return sortedLocalPaths;
+	private Integer getLeftVertexNum() {
+		Point point = vertexToPoint(currentPosition);
+		if (direction.equals("up"))
+			point.x--;
+		else if (direction.equals("down"))
+			point.x++;
+		else if (direction.equals("left"))
+			point.y++;
+		else // right
+			point.y--;
+
+		return pointToVertex(point);
 	}
 
-	public int getCurrentPosition() {
-		return this.currentPosition;
+	private Integer getRightVertexNum() {
+		Point point = vertexToPoint(currentPosition);
+		if (direction.equals("up"))
+			point.x++;
+		else if (direction.equals("down"))
+			point.x--;
+		else if (direction.equals("left"))
+			point.y--;
+		else // right
+			point.y++;
+
+		return pointToVertex(point);
 	}
 
+	public List<Integer> recalculatePath(int target, Graph graph) {
+		return graph.dijkstra(currentPosition, target); // Recalculate path using Dijkstra's algorithm
+	}
+
+	// Method to update the robot's current position.
 	public void setCurrentPosition(int currentPosition) {
 		this.currentPosition = currentPosition;
 	}
 
-	public List<Integer> getGlobalPath() {
-		return this.globalPath;
+	// Method to get the robot's current position.
+	public int getCurrentPosition() {
+		return currentPosition;
+	}
+
+	public int getTargetPosition() {
+		return targetPosition;
+	}
+
+	public void setTargetPosition(int targetPosition) {
+		this.targetPosition = targetPosition;
+	}
+
+	private HashMap<String, Boolean> translateMoveOptions(boolean forward, boolean left, boolean right) {
+		HashMap<String, Boolean> moveOptions = new HashMap<>();
+		moveOptions.put("forward", forward);
+		moveOptions.put("left", left);
+		moveOptions.put("right", right);
+		return moveOptions;
+	}
+
+	// Returns a map of the robot's move options. Keys are "forward", "left", and
+	// "right".
+	// values are booleans representing whether the robot can move in that
+	// direction.
+	public HashMap<String, Boolean> getMoveOptions() {
+		Point point = vertexToPoint(currentPosition);
+		HashMap<String, Boolean> graphMoveOptions = graph.getMoveOptions(point);
+		HashMap<String, Boolean> moveOptions;
+		boolean up = graphMoveOptions.get("up");
+		boolean down = graphMoveOptions.get("down");
+		boolean left = graphMoveOptions.get("left");
+		boolean right = graphMoveOptions.get("right");
+		if (direction.equals("up"))
+			moveOptions = translateMoveOptions(up, left, right);
+		else if (direction.equals("down"))
+			moveOptions = translateMoveOptions(down, right, left);
+		else if (direction.equals("left"))
+			moveOptions = translateMoveOptions(left, down, up);
+		else // right
+			moveOptions = translateMoveOptions(right, up, down);
+
+		moveOptions.put("backward", false);
+		return moveOptions;
+	}
+
+	public void turnLeft() {
+		direction = shiftLeft(direction);
+	}
+
+	public void turnRight() {
+		direction = shiftRight(direction);
+	}
+
+	public String shiftLeft(String direction) {
+		if (direction.equals("up"))
+			return "left";
+		else if (direction.equals("left"))
+			return "down";
+		else if (direction.equals("down"))
+			return "right";
+		else // right
+			return "up";
+	}
+
+	public String shiftRight(String direction) {
+		if (direction.equals("up"))
+			return "right";
+		else if (direction.equals("right"))
+			return "down";
+		else if (direction.equals("down"))
+			return "left";
+		else // left
+			return "up";
+	}
+
+	private int stringDirToDegree(String direction) {
+		if (direction.equals("up"))
+			return 90;
+		else if (direction.equals("left"))
+			return 180;
+		else if (direction.equals("down"))
+			return 270;
+		else // right
+			return 0;
+	}
+
+	// returns the relative direction of some vertex
+	// main use is the find the direction of the next step on the path
+	public String findStepDir(Integer nextVertexNum) {
+		Point point = vertexToPoint(nextVertexNum);
+		Point robotPos = vertexToPoint(currentPosition);
+		// plane direction is the fixed direction of the plane
+		String planeDirection;
+		if (point.x < robotPos.x)
+			planeDirection = "left";
+		else if (point.x > robotPos.x)
+			planeDirection = "right";
+		else if (point.y < robotPos.y)
+			planeDirection = "up";
+		else // point.y > robotPos.y
+			planeDirection = "down";
+
+		int robotDirdegree = stringDirToDegree(direction);
+		int planeDirDegree = stringDirToDegree(planeDirection);
+		int degreeDiff = planeDirDegree - robotDirdegree;
+		String stepDir;
+		if (degreeDiff == 0)
+			stepDir = "forward";
+		else if (degreeDiff == 90 || degreeDiff == -270)
+			stepDir = "left";
+		else if (degreeDiff == 180 || degreeDiff == -180)
+			stepDir = "backward";
+		else if (degreeDiff == 270 || degreeDiff == -90)
+			stepDir = "right";
+		else
+			throw new Error("Invalid degree");
+
+		return stepDir;
+	}
+
+	// checks: if the vertex is an obstacle and if the robot can turn into it
+	public boolean canMoveTo(Integer nextVertexNum) {
+		boolean isObstacle = graph.isObstacle(nextVertexNum) || graph.dynamicObstacles.containsKey(nextVertexNum);
+		String stepDir = findStepDir(nextVertexNum);
+		HashMap<String, Boolean> moveOptions = getMoveOptions();
+		return moveOptions.get(stepDir) && !isObstacle;
+	}
+
+	public Integer getNextStepOnPath() {
+		return currentSelectedPath.get(currentPathIndex + 1);
+	}
+
+	public void stepTowardsTarget() {
+		if (!stayStoppedToAvoidCollisionBug2) {
+			if (bug2IsActive) {
+				System.out.println("\n" + name + ": does bug2 step");
+				bug2algorithmStep();
+			} else {
+				System.out.println("\n" + name + ": does path step");
+				takeStepOnPath();
+			}
+		} else {
+			System.out.println("\n" + name +": stays stopped");
+		}
+	}
+
+	// Tries to step forward on the planned path
+	// If it can't, it activates bug2
+	private void takeStepOnPath() {
+		Integer nextVertexNum = getNextStepOnPath();
+		String stepDir = findStepDir(nextVertexNum);
+
+		System.out.println("Direction: " + direction);
+		System.out.println("Rel. step direction: " + stepDir);
+		System.out.println("Can move to next step: " + canMoveTo(nextVertexNum));
+
+		// graph.dynamicObstacles.containsKey(nextVertexNum)
+		if (canMoveTo(nextVertexNum)) {
+			currentPathIndex++;
+			moveTo(currentSelectedPath.get(currentPathIndex), stepDir);
+		} else {
+			// make sure we are turned towards the next step before we start bug2
+			if (stepDir.equals("backward")) {
+				System.out.println("NOTE: turning fully around");
+				turnLeft();
+				turnLeft();
+			} else if (stepDir.equals("left")) {
+				turnLeft();
+				System.out.println("Turning left for bug2");
+			} else if (stepDir.equals("right")) {
+				turnRight();
+				System.out.println("Turning right for bug2");
+			}
+			System.out.println("Direction: " + direction);
+			Object obstacle = graph.dynamicObstacles.get(getForwardVertexNum());
+			activateBug2(obstacle);
+		}
+	}
+
+	public void stopToAvoidCollisionForBug2() {
+		System.out.println(this.name + ": received stop signal");
+		stayStoppedToAvoidCollisionBug2 = true;
+	}
+
+	public void continueCollsionAvertedBug2() {
+		System.out.println(this.name + ": received continue signal");
+		stayStoppedToAvoidCollisionBug2 = false;
+	}
+
+	private void activateBug2(Object obstacle) {
+		System.out.println("bug2 activated");
+		bug2IsActive = true;
+		remainingPathToFindUsingBug2 = currentSelectedPath.subList(currentPathIndex + 2, currentSelectedPath.size());
+		if (obstacle instanceof Robot) {
+			System.out.println("telling other robot to stop");
+			otherRobotInBug2 = (Robot) obstacle;
+			otherRobotInBug2.stopToAvoidCollisionForBug2();
+			
+		}
+	}
+
+	private void deactivateBug2() {
+		currentPathIndex = currentSelectedPath.indexOf(currentPosition);
+		bug2IsActive = false;
+		bug2SearchDirection = null;
+		remainingPathToFindUsingBug2 = null;
+		if (otherRobotInBug2 != null) {
+			otherRobotInBug2.continueCollsionAvertedBug2();
+			otherRobotInBug2 = null;
+		}
+		System.out.println("BUG2 DEACTIVATED. PATH FOUND");
+	}
+
+	public void bug2algorithmStep() {
+		if (bug2SearchDirection == null) {
+			System.out.println("SEARCH DIRECTION IS NOW LEFT");
+			bug2SearchDirection = "left";
+			turnRight();
+		}
+		if (bug2SearchDirection.equals("left")) {
+			if (remainingPathToFindUsingBug2.contains(currentPosition)) {
+				// robot should be back on the path
+				deactivateBug2();
+			}
+			// robot should try to hug the obstacle on its left
+			else if (canMoveTo(getLeftVertexNum())) {
+				System.out.println("bug2 move left");
+				turnLeft();
+				moveForward();
+			} else if (canMoveTo(getForwardVertexNum())) {
+				System.out.println("bug2 move forward");
+				moveForward();
+			} else {
+				System.out.println("SEARCH DIRECTION IS NOW RIGHT");
+				bug2SearchDirection = "right";
+				turnRight();
+				turnRight();
+			}
+		} else if (bug2SearchDirection.equals("right")) {
+			if (remainingPathToFindUsingBug2.contains(currentPosition)) {
+				// robot should be back on the path
+				deactivateBug2();
+			}
+			// robot should try to hug the obstacle on its right
+			else if (canMoveTo(getRightVertexNum())) {
+				turnRight();
+				moveForward();
+			} else if (canMoveTo(getForwardVertexNum())) {
+				moveForward();
+			} else {
+				throw new Error("bug2 is unable to find a path");
+			}
+		}
+	}
+
+	public boolean pathIsComplete() {
+		return currentPathIndex >= currentSelectedPath.size() - 1;
 	}
 }
