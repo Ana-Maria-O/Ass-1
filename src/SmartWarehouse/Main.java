@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class Main {
-	static final int GRID_WIDTH = 6;
-	static final int GRID_HEIGHT = 7;
+	static final int GRID_WIDTH = 10;
+	static final int GRID_HEIGHT = 10;
 	static final Set<Integer> OBSTACLES = new HashSet<>(Arrays.asList(7, 8, 28, 34));
 
 	public static void printGraph(Graph graph, List<Robot> robots, Map<Integer, Object> dynamicObstacles) {
@@ -20,7 +20,7 @@ public class Main {
 			for (Robot robot : robots) {
 				robotPositions.add(robot.getCurrentPosition());
 				robotTargets.add(robot.getTargetPosition());
-				robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
+				// robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
 			}
 		}
 		System.out.println();

@@ -1,5 +1,6 @@
 package src.SmartWarehouse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -9,7 +10,7 @@ public class Robot {
 	private int targetPosition; // Target position in the warehouse.
 	private Graph graph; // Warehouse map
 	private int batteryLevel; // Battery level
-	List<Integer> currentSelectedPath;
+	List<Integer> currentSelectedPath = new ArrayList<Integer>();
 	int currentPathIndex = 0;
 	String direction = "right"; // absolute direction on the plane: up, down, left, right
 	boolean bug2IsActive = false;
@@ -61,6 +62,17 @@ public class Robot {
 
 	public List<Integer> getCurrentSelectedPath() {
 		return currentSelectedPath;
+	}
+
+	// Set the current selected path of the robot
+	public void setCurrentSelectedPath(List<Integer> path) {
+		currentSelectedPath = path;
+	}
+
+	// Function used to set the selected path back to an empty list
+	// Used when a robot has finished following a path
+	public void clearCurrentSelectedPath() {
+		currentSelectedPath = new ArrayList<Integer>();
 	}
 
 	public void selectPathToTarget() {

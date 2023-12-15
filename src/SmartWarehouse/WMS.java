@@ -1,80 +1,168 @@
 package src.SmartWarehouse;
 
-// TODO
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.HashMap;
+
 public class WMS {
-
-    /*
-     * Sub-classes of the WMS as outlined in the MAPE-K architecture in Assignment 3
-     * TODO: Assignment 4 - Implement the WMS using these
-     */
-    public static class Monitor {
-    }
-
-    public static class Analyzer {
-    }
-
-    public static class Planner {
-    }
-
-    public static class Executor {
-    }
-
-    public static class KnowledgeBase {
-        /*
-         * TODO: Create a private variable to hold all precoputed paths (to cell 40)
-         * Create getter and setter functions for it
-         */
-
-        // private static allPathsTo40
-
-        // private static setPathTo40(path) {}
-
-        // private static getPathTo40(startingCell) {}
-    }
 
     // Constants
     // Number of robots
-    private final int ROBOTNUMBER = 10;
+    private static final int ROBOTNUMBER = 3;
     // Number of conveyor belts
-    private final int CBNUMBER = 2;
+    private final int CBNUMBER = cbPositions.size() / 2;
     // Number of charging stations
-    private final int CSNUMBER = 4;
+    private final int CSNUMBER = csPositions.size();
+    // Size of warehouse
+    private static final int WAREHOUSE_LENGTH = 10;
+    private static final int WAREHOUSE_WIDTH = 10;
+
+    // List of robots
+    private static List<Robot> robots = new ArrayList<Robot>();
+
+    // The graph repesenting the warehouse
+    private static Graph graph;
+    // Set with all the known obstacles in the warehouse
+    private static Set<Integer> obstacles = new HashSet<Integer>();
+
+    // Positions of the charging stations
+    // There's one in each corner basically
+    private static List<Integer> csPositions = Arrays.asList(0, 9, 90, 99);
+    // Positions of the conveyor belts
+    // A conveyor belt occupies two nodes
+    // There's a conveyor belt in the middle of the bottom and top row
+    private static List<Integer> cbPositions = Arrays.asList(4, 5, 94, 95);
+    // Positions of the shelves
+    // A shelf occupies two nodes
+    private static List<Integer> shelfPositions = Arrays.asList(41, 51, 44, 54, 47, 57);
+
+    public static void main(String[] args) {
+
+        // Initiate the warehouse
+        initWarehouse();
+
+        // Target location of the conveyor
+        int target = 4;
+        // Target location of the shelf
+        int shelfLocation = 57;
+        // RFID of the package
+        // String RFID = "abc123";
+
+        // Decide which robot to send to pick up the package from the shelf to the
+        // conveyor belt
+        Object[] mission = chooseRobotForMission(shelfLocation, target);
+
+        // TODO: start the mission
+
+        // TODO: figure out the safety monitor
+        // not sure how to have that running in parallel without threads. Probably
+        // another while loop where we call the monitor after every step of the main
+        // robot
+
+        // TODP: Create scenarios for deviations
+
+    }
+
+    private static void initWarehouse() {
+        // Compile a set with all the known obstacles in the warehouse
+        // The charging stations
+        obstacles.addAll(csPositions);
+        // The conveyor belts
+        obstacles.addAll(cbPositions);
+        // The shelves
+        obstacles.addAll(shelfPositions);
+
+        // Create the graph
+        graph = new Graph(WAREHOUSE_WIDTH, WAREHOUSE_LENGTH, obstacles, new HashMap<Integer, Object>());
+
+        // Robots
+        for (int i = 0; i < ROBOTNUMBER; i++) {
+            // These positions only work for the default values of this class
+            // If you change the grid size or the positions of anything else, you may need
+            // to change the robots' positions as well
+            robots.add(new Robot(i + 11, graph));
+        }
+
+    }
+
+    // Takes the location of the shelf and the position of the conveyor belt for the
+    // mission, selects a robot and returns the index of the robot as well as the 2
+    // paths it has to travel
+    private static Object[] chooseRobotForMission(int shelfLocation, int target) {
+
+        // Check what robots are available
+        for (int i = 0; i < ROBOTNUMBER; i++) {
+            Robot robot = robots.get(i);
+            // If the robot does not have a current chosen path nor is it in the position of
+            // a charging station, its path is computed
+            if (robot.getCurrentSelectedPath().size() == 0
+                    && !csPositions.contains(robot.getCurrentPosition())) {
+                // Compute path for the robot to the shelf
+                List<Integer> tempPath1 = computePathICA(robot.getCurrentPosition(), shelfLocation);
+                // Compute path for the robot to the conveyor belt
+                List<Integer> tempPath2 = computePathICA(shelfLocation, target);
+                // TODO Optional?: make algo to find path to the nearest conveyor belt and add
+                // that too
+
+                // Check if the robot has enough battery to reach the conveyor
+                // Doubled the minimum necessary battery to account for possible deviations from
+                // the path
+                if (robot.getBatteryLevel() >= 2 * (tempPath1.size() + tempPath2.size())) {
+                    // If the robot can reach the conveyor, return the robot and the paths
+                    return new Object[] { i, tempPath1, tempPath2 };
+                }
+            }
+        }
+        // If no robot is available, return an empty list
+        return new Object[] {};
+    }
+
+    // TODO ICA path planning algorithm
+    // Takes the start and the end positions of a path and returns the path
+    // It takes into account all the current paths being travelled by robots
+    private static List<Integer> computePathICA(int start, int end) {
+        return new ArrayList<Integer>();
+    }
+
+    // TODO: Safety monitor
+    // Should check the positions of all robots, and recompute all paths if it
+    // detects safety problems
+    private static void safetyMonitor() {}
 
     // Dummy function for notifications send to WMS
     public static void notify(String message) {
         System.out.println(message);
     }
 
-    public static void main(String[] args) {
+    // Clas that represents a charging station
+    public class ChargingStation {
+        // True if the charging station is currently in use, false otherwise
+        private boolean used = false;
+        // Position of the charging station on the grid
+        private int position;
 
-        /*
-         * For assignment 3: initiate 2 robots and start their movements
-         * Can probably delete this after assignment 3
-         * Can probably also do this in a different class I guess, but imo it's easier
-         * to have all this top-level stuff in this class. Having a "main" class
-         * when that is not the main class for the system is very confusing
-         */
+        // Initialize the charging station on a position
+        public ChargingStation(int position) {
+            this.position = position;
+        }
 
-        // Initiate the warehouse - DO NOT DELETE, WILL BE USED FOR ASSIGNMENT 4
-        // initWarehouse();
+        // Returns if the charging station is currently in use
+        public boolean getUsed() {
+            return used;
+        }
 
-        // Old code from previous assignments
-        // ERRORS: The robot constructor has been modified. functions in the Robot class
-        // have been deleted
-        // CBC conveyorBeltController = new CBC();
-        // Robot robot = new Robot("R#1");
-        // Robot robot2 = new Robot("R#2");
-        // String packetRFID = "P#1";
-        // robot.enqueueForFetching(conveyorBeltController, packetRFID);
-    }
+        // Sets the usage status of the charging station (if it is currently in use or
+        // not)
+        public void setUsed(boolean newUsed) {
+            used = newUsed;
+        }
 
-    private static void initWarehouse() {
-        /*
-         * TODO
-         * Initiate robots
-         * Initiate conveyor belts with some packages on them
-         * Compute all paths to grid 40 and store them in KnowledgeBase.allPathsTo40
-         */
-
+        // Get the position of the charging station
+        public int getPosition() {
+            return position;
+        }
     }
 }
