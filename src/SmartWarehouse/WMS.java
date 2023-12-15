@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.HashMap;
+import java.util.Map;
 
 public class WMS {
 
@@ -27,6 +28,8 @@ public class WMS {
     private static Graph graph;
     // Set with all the known obstacles in the warehouse
     private static Set<Integer> obstacles = new HashSet<Integer>();
+    // Map with all the shortest paths in the warehouse
+    private static Map<Integer, Map<Integer, List<Integer>>> allPaths = new HashMap<Integer, Map<Integer, List<Integer>>>();
 
     // Positions of the charging stations
     // There's one in each corner basically
@@ -43,6 +46,9 @@ public class WMS {
 
         // Initiate the warehouse
         initWarehouse();
+
+        // Compute all paths
+        computePathsForGrid();
 
         // Target location of the conveyor
         int target = 4;
@@ -62,7 +68,7 @@ public class WMS {
         // another while loop where we call the monitor after every step of the main
         // robot
 
-        // TODP: Create scenarios for deviations
+        // TODO: Create scenarios for deviations
 
     }
 
@@ -120,10 +126,16 @@ public class WMS {
         return new Object[] {};
     }
 
+    // TODO: Algorithm which, for each point on the grid, computes the shortest path to each other point
+    // The paths should be of class List<Integer>
+    // Store all of them the variable allMaps, where allMaps[x][y] is the shortest path from x to y 
+    private static void computePathsForGrid() {}
+
     // TODO ICA path planning algorithm
     // Takes the start and the end positions of a path and returns the path
     // It takes into account all the current paths being travelled by robots
     private static List<Integer> computePathICA(int start, int end) {
+        // Get path
         return new ArrayList<Integer>();
     }
 
