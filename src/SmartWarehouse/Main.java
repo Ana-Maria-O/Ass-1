@@ -1,150 +1,168 @@
 package src.SmartWarehouse;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Scanner;
 
 public class Main {
 	static final int GRID_WIDTH = 6;
 	static final int GRID_HEIGHT = 7;
 	static final Set<Integer> OBSTACLES = new HashSet<>(Arrays.asList(7, 8, 28, 34));
 
-	public static void main(String[] args) {
-		boolean flag = true;
-		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES);
+	public static void printGraph(Graph graph, List<Robot> robots, Map<Integer, Object> dynamicObstacles) {
+		Set<Integer> robotPositions = new HashSet<>();
+		Set<Integer> robotTargets = new HashSet<>();
+		Set<Integer> robotPathsVerticies = new HashSet<>();
+		if (robots != null) {
+			for (Robot robot : robots) {
+				robotPositions.add(robot.getCurrentPosition());
+				robotTargets.add(robot.getTargetPosition());
+				robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
+			}
+		}
+		System.out.println();
+		for (int y = 0; y < graph.getGridHeight(); y++) {
+			for (int x = 0; x < graph.getGridWidth(); x++) {
+				int vertexNum = graph.pointToVertexNum(new Point(x, y));
+				if (robotPositions.contains(vertexNum)) {
+					System.out.print("\033[92m" + "R" + "\u001B[0m");
+				} else if (dynamicObstacles.containsKey(vertexNum)) {
+					System.out.print("\033[40m" + "X" + "\u001B[0m");
+				} else if (graph.isObstacle(vertexNum)) {
+					System.out.print("\033[91m" + "X" + "\u001B[0m");
+				} else if (robotTargets.contains(vertexNum)) {
+					System.out.print("\033[93m" + "T" + "\u001B[0m");
+				} else if (robotPathsVerticies.contains(vertexNum)) {
+					System.out.print("\033[94m" + "*" + "\u001B[0m");
+				} else {
+					System.out.print("*");
+				}
+			}
+			System.out.println();
+		}
+	}
+
+	// no dynamic obstacles
+	public static void scenario1() {
+		Map<Integer, Object> dynamicObstacles = new HashMap<>();
+		List<Integer> unknownStaticObstacles = Arrays.asList();
+		for (Integer vertexNum : unknownStaticObstacles) {
+			dynamicObstacles.put(vertexNum, new Object());
+		}
+		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
 		int start = 0; // Start position is 1 in 1-indexed
 		int target = 39; // Target position is 40 in 1-indexed
 
-		Map<Integer, List<List<Integer>>> allpaths = graph.computeAllPathsToTarget(target);
-		Robot robot = new Robot(start, allpaths, graph);
-		// Initialize the robot at the start position
-//		Robot robot = new Robot(start, graph.computeAllPathsToTarget(target), graph);
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
+		Robot robot = new Robot(start, graph);
+		robot.setTarget(target, allpaths);
+		robot.selectPathToTarget();
 
-		// Get the initial path for the robot
-		List<Integer> robotPath = robot.selectPathToTarget(start, target, false); // false for optimal path
-		System.out.println("Robot moved to cell " + (robotPath.get(0) + 1));
-		Scanner scanner = new Scanner(System.in);
-		for (int i = 1; i < robotPath.size(); i++) {
-			int currentStep = robotPath.get(i);
+		List<Integer> robotPath = robot.getCurrentSelectedPath();
+		System.out.print("Current path: ");
+		System.out.println(robotPath);
+		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 
-			if (currentStep != target) {
-				// Comment if you DONT want to ask the user
-				System.out.println("Do you want to place an obstacle? (Y/N)");
-				String response = scanner.nextLine();
-				if (response.equalsIgnoreCase("Y")) {
-					System.out.println("Enter the cell ID to place an obstacle:");
-					int obstacleCellId = scanner.nextInt() - 1; // Adjust for 1-indexed input
-					scanner.nextLine();
-					if (!graph.isObstacle(obstacleCellId)) {
-						graph.addObstacle(obstacleCellId);
-						flag = false;
-					}
-				}
-
-				// Check if the next step is an obstacle
-				if ((i + 1) < robotPath.size() && graph.isObstacle(robotPath.get(i + 1))
-						|| graph.isObstacle(robotPath.get(i))) {
-					if (graph.isObstacle(robotPath.get(i + 1))) {
-						System.out.println("Obstacle detected at cell " + (robotPath.get(i + 1) + 1));
-					} else {
-						System.out.println("Obstacle detected at cell " + (robotPath.get(i) + 1));
-					}
-
-					if (!robot.moveToAdjacentNonObstacleCell(graph)) {
-						System.out.println("No adjacent non-obstacle cells available. Unable to proceed.");
-						break;
-					} else {
-						// Recompute the path from the robot's new current position considering the new
-						// obstacle
-						robotPath = robot.selectPathToTargetObstacle(robot.getCurrentPosition(), target, false, graph);
-						i = robotPath.indexOf(robot.getCurrentPosition()) - 1; // Update the loop index
-						continue;
-					}
-				}
-				robot.setCurrentPosition(currentStep);
-				System.out.println("Robot moved to cell " + (currentStep + 1));
-			} else if (currentStep == target)  {
-				robot.setCurrentPosition(currentStep); // Move to the final cell/target.
-				System.out.println();
-				System.out.println("Robot moved to cell " + (currentStep + 1));
-				System.out.println();
-				System.out.println("Robot reached its destination.");
-			}
-//			if (flag) {
-////			if (response.equalsIgnoreCase("Y")) {
-////				System.out.println("Enter the cell ID to place an obstacle:");
-////			int obstacleCellId = scanner.nextInt() - 1; // Adjust for 1-indexed input
-//				int obstacleCellId = 9;
-////			scanner.nextLine();
-//
-//				if (!graph.isObstacle(obstacleCellId)) {
-//					graph.addObstacle(obstacleCellId);
-//					flag = false;
-//				}
-//			}
+		while (!robot.pathIsComplete()) {
+			robot.stepTowardsTarget();
+			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 		}
+	}
+	
+	// need to round obstacles using bug2
+	public static void scenario2() {
+		Map<Integer, Object> dynamicObstacles = new HashMap<>();
+		List<Integer> unknownStaticObstacles = Arrays.asList(6,31);
+		for (Integer vertexNum : unknownStaticObstacles) {
+			dynamicObstacles.put(vertexNum, new Object());
+		}
+		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
+		int start = 0; // Start position is 1 in 1-indexed
+		int target = 39; // Target position is 40 in 1-indexed
 
-//        // Iterate through the path
-//        for (int i = 0; i < robotPath.size(); i++) {
-//            int currentStep = robotPath.get(i);
-//            robot.setCurrentPosition(currentStep);
-//            System.out.println("Robot moved to cell " + (currentStep + 1));
-//
-//            System.out.println("Do you want to place an obstacle? (Y/N)");
-//            String response = scanner.nextLine();
-//            if (response.equalsIgnoreCase("Y")) {
-//                System.out.println("Enter the cell ID to place an obstacle:");
-//                int obstacleCellId = scanner.nextInt() - 1; // Adjust for 1-indexed input
-//                scanner.nextLine(); // Consume the newline
-//
-//                if (obstacleCellId == currentStep) {
-//                    if (!robot.moveToAdjacentNonObstacleCell(graph)) {
-//                        System.out.println("No adjacent non-obstacle cells available. Unable to proceed.");
-//                        break;
-//                    }
-//                } else if (!graph.isObstacle(obstacleCellId)) {
-//                    graph.addObstacle(obstacleCellId);
-//                }
-//
-//                // Recompute the path from the robot's current position
-//                robotPath = robot.selectPathToTarget(target, false); // false for optimal path
-//                i = robotPath.indexOf(robot.getCurrentPosition()) - 1; // Update the loop index
-//            }
-//        }
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
+		Robot robot = new Robot(start, graph);
+		robot.setTarget(target, allpaths);
+		robot.selectPathToTarget();
 
-		scanner.close();
+		List<Integer> robotPath = robot.getCurrentSelectedPath();
+		System.out.print("Current path: ");
+		System.out.println(robotPath);
+		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+
+		while (!robot.pathIsComplete()) {
+			robot.stepTowardsTarget();
+			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		}
+	}
+	
+	// bug2 gets stuck
+	public static void scenario3() {
+		Map<Integer, Object> dynamicObstacles = new HashMap<>();
+		List<Integer> unknownStaticObstacles = Arrays.asList(3,6,31);
+		for (Integer vertexNum : unknownStaticObstacles) {
+			dynamicObstacles.put(vertexNum, new Object());
+		}
+		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
+		int start = 0; // Start position is 1 in 1-indexed
+		int target = 39; // Target position is 40 in 1-indexed
+
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
+		Robot robot = new Robot(start, graph);
+		robot.setTarget(target, allpaths);
+		robot.selectPathToTarget();
+
+		List<Integer> robotPath = robot.getCurrentSelectedPath();
+		System.out.print("Current path: ");
+		System.out.println(robotPath);
+		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+
+		while (!robot.pathIsComplete()) {
+			robot.stepTowardsTarget();
+			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		}
+	}
+	
+	// task 4
+	// Robots colliding into each other
+	public static void scenario4() {
+		Map<Integer, Object> dynamicObstacles = new HashMap<>();
+		// List<Integer> unknownStaticObstacles = Arrays.asList(3,6,31);
+		// for (Integer vertexNum : unknownStaticObstacles) {
+		// 	dynamicObstacles.put(vertexNum, new Object());
+		// }
+		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
+		// Starting point of the firt robot
+		int start = 36; // Start position is 1 in 1-indexed
+		int target = 40; // Target position is 40 in 1-indexed
+		List<Integer> shortestPath = graph.dijkstra(start, target);
+
+	    // Print the shortest path
+	    System.out.println("Shortest path from " + start + " to " + target + ": " + shortestPath);
+
+		List<List<Integer>> allpaths = graph.computeAllPathsToTarget(target);
+		Robot robot = new Robot(start, graph);
+		robot.setTarget(target, allpaths);
+		robot.selectPathToTarget();
+
+		List<Integer> robotPath = robot.getCurrentSelectedPath();
+		System.out.print("Current path: ");
+		System.out.println(robotPath);
+		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+
+		while (!robot.pathIsComplete()) {
+			robot.stepTowardsTarget();
+			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		}
+	}
+
+	public static void main(String[] args) {
+		// scenario1();
+		// scenario2();
+		// scenario3();
+		scenario4();
 	}
 }
-
-//public class Main {
-//
-//	public static void main(String[] args) {
-//		int GRID_WIDTH = 6;
-//		int GRID_HEIGHT = 7;
-//		Set<Integer> OBSTACLES = new HashSet<>(Arrays.asList(1, 7, 8, 20, 26, 28, 34));
-//
-//		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES);
-//		int start = 0; // Start position is 1 in 1-indexed
-//		int target = 39; // Target position is 40 in 1-indexed
-//
-//		// Compute all possible paths from each cell in the map to the target
-//		Map<Integer, List<List<Integer>>> allPaths = graph.computeAllPathsToTarget(target);
-//
-//		// Initialize the robot at the start position
-//		Robot robot = new Robot(start, allPaths);
-//
-//		boolean flag = false; // Set to true if you want to have random path to the target
-//
-//		// Let the robot select the path to the target...will be changed to the WMS
-//		List<Integer> optimalPath = robot.selectPathToTarget(target, flag);
-//		System.out.print("Optimal Path from Cell " + (start + 1) + " to Target: ");
-//		optimalPath.forEach(position -> System.out.print((position + 1) + " "));
-//		System.out.println();
-//
-//		// The robot moves following the optimal path
-//		robot.followPath(optimalPath);
-//	}
-//}

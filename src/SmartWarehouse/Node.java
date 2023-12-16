@@ -22,4 +22,9 @@ public class Node implements Comparable<Node> {
 		// https://www.baeldung.com/java-compareto
 		return Integer.compare(this.cost, other.cost);
 	}
+	
+    @Override
+    public String toString() {
+        return "Node[vertex=" + (vertex+1) + ", cost=" + cost + "]";
+    }
 }
