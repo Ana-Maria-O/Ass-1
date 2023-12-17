@@ -4,14 +4,16 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import src.SmartWarehouse.NoPacketException;
+
+import src.SmartWarehouse.exceptions.NoPacketException;
+import src.SmartWarehouse.exceptions.WrongPacketException;
 
 class CBC {
     private ConveyorBelt conveyorBelt = new ConveyorBelt();
     private Deque<Robot> waitingQueue = new ConcurrentLinkedDeque<>();
     private Deque<String> packetRFIDFetchingQueue = new ConcurrentLinkedDeque<>();
     private Lock loadingPositionLock = new ReentrantLock();
-    private Position loadingPosition = new Position(0, 0);
+    private Point loadingPosition = new Point(0, 0);
 
     public void enqueueForFetching(Robot robot, String packetRFID) {
         waitingQueue.addLast(robot);

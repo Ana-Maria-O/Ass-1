@@ -1,4 +1,9 @@
-package src.SmartWarehouse;
+package src.SmartWarehouse.robotcomponents;
+
+import src.SmartWarehouse.Packet;
+import src.SmartWarehouse.StatusDisplay;
+import src.SmartWarehouse.WMS;
+
 public class RobotArm {
     Packet storageLocation[];
     // The current position and status of the robot arm

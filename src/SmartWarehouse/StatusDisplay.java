@@ -1,4 +1,7 @@
 package src.SmartWarehouse;
+
+import src.SmartWarehouse.robotcomponents.RobotArm;
+
 public class StatusDisplay {
     public static void main(String[] args) {
         display(new RobotArm(new Packet[1]));

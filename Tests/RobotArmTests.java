@@ -20,10 +20,10 @@ import org.mockito.stubbing.Answer;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import src.SmartWarehouse.MotorsAndSensors;
-import src.SmartWarehouse.RobotArm;
-import src.SmartWarehouse.MotorsAndSensors.rotationMotor;
 import src.SmartWarehouse.WMS;
+import src.SmartWarehouse.robotcomponents.MotorsAndSensors;
+import src.SmartWarehouse.robotcomponents.RobotArm;
+import src.SmartWarehouse.robotcomponents.MotorsAndSensors.rotationMotor;
 import src.SmartWarehouse.Packet;
 
 @RunWith(MockitoJUnitRunner.class)
