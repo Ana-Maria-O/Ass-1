@@ -95,7 +95,9 @@ public class WMS {
             // These positions only work for the default values of this class
             // If you change the grid size or the positions of anything else, you may need
             // to change the robots' positions as well
-            robots.add(new Robot(i + 11, graph));
+            Robot robot = new Robot(i + 11, graph);
+            robot.index = i;
+            robots.add(robot);
         }
 
     }
@@ -166,7 +168,7 @@ public class WMS {
     private static void computePathsForGrid() {
     }
 
-    // ICA path planning algorithm - PLEASE TEST EVERYTIHING HERE
+    // ICA path planning algorithm - TODO: PLEASE TEST EVERYTHING HERE
     // Takes the start and the end positions of a path and returns a path
     // Also takes the id of a robot, useful for when computing a path for a yet
     // inactive robot
@@ -458,8 +460,14 @@ public class WMS {
                     for (int crossPoint : tempSet2) {
                         // Compute the level of safety
                         int level = 2;
+
+                        // Get the index of the cross point in each paths. In the warehouse, the index
+                        // represents the time when the robot is expected to reach the waypoint.
+                        // Compute the difference between the indexes, aka the time difference between
+                        // when the robots will reach the waypoint
                         int difference = Math
                                 .abs(chPaths.get(i).indexOf(crossPoint) - chPaths.get(j).indexOf(crossPoint));
+
                         // If the time difference is greater than the threshold then level is 1,
                         // otherwise it's 2
                         if (difference > SAFTEY_THRESHOLD) {
@@ -492,11 +500,11 @@ public class WMS {
         // Instance of random
         Random rand = new Random();
 
-        // The child of the parents
+        // The child of the chromosomes
         List<Integer> child = new ArrayList<Integer>();
 
         // For each element in the chromosome, randomly select the parent it will
-        // inherit or if it will be a crossover between the parents
+        // inherit from or if it will be a crossover between the parents
         for (int i = 0; i < parent1.size(); i++) {
             int result = rand.nextInt(3);
 
@@ -521,6 +529,7 @@ public class WMS {
         return child;
     }
 
+    // TODO: Test
     private static List<Integer> pathFromWaypoint(int robotIndex, int waypoint) {
         List<Integer> newPath = new ArrayList<Integer>();
         // Select and add the path from the robot to the waypoint
@@ -533,22 +542,42 @@ public class WMS {
         return newPath;
     }
 
-    // TODO: Safety monitor
+    // TODO: Test
     // Should check the positions of all robots, and recompute all paths if it
     // detects safety problems
     private static void safetyMonitor() {
+        // Check every active robot's current position and see if it is in the robot's
+        // current selected path
+        for (Integer robotIndex : activeRobots) {
+            // Current robot
+            Robot robot = robots.get(robotIndex);
+            // If the robot's current position is not in the robot's path, recompute the
+            // paths of all robots
+            if (!robot.getCurrentSelectedPath()
+                    .contains(robot.getCurrentPosition())) {
+                // The function returns the path of the robot, but because it is already in the
+                // activeRobots list its path is already changed by the algorithm so we don't
+                // need to take more actions here
+                computePathICA(robot.getCurrentPosition(), robot.getTargetPosition(), robotIndex);
+            }
+        }
     }
 
     // TODO: Send the robot to the nearest charger to charge
     private static void sendRobotToCharge(Integer robotIndex) {
     }
 
+    // TODO: Function called by a robot when it decides to abort its current mission and wants to go charge
+    // Returns the path for the robot to the nearest charging station
+    public static List<Integer> abortToCharge(Integer robotIndex) {
+        return new ArrayList<Integer>();
+    }
     // Dummy function for notifications send to WMS
     public static void notify(String message) {
         System.out.println(message);
     }
 
-    // Clas that represents a charging station
+    // Class that represents a charging station
     public class ChargingStation {
         // True if the charging station is currently in use, false otherwise
         private boolean used = false;

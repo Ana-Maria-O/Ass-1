@@ -19,6 +19,7 @@ public class Robot {
 	private boolean stayStoppedToAvoidCollisionBug2;
 	String bug2SearchDirection;
 	String name = "R1";
+	int index;
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
@@ -66,7 +67,17 @@ public class Robot {
 
 	// Set the current selected path of the robot
 	public void setCurrentSelectedPath(List<Integer> path) {
-		currentSelectedPath = path;
+		// Check if the robot has enough battery for the new path. If not, it tells
+		// the WMS it needs to go to a charging station and changes its current selected
+		// path to a path to the nearest charging station
+		if (path.size() > batteryLevel) {
+			currentSelectedPath = WMS.abortToCharge(index);
+		}
+		
+		// If the robot has enough battery for the new path, then select it
+		else {
+			currentSelectedPath = path;
+		}
 	}
 
 	// Function used to set the selected path back to an empty list
@@ -304,7 +315,7 @@ public class Robot {
 				takeStepOnPath();
 			}
 		} else {
-			System.out.println("\n" + name +": stays stopped");
+			System.out.println("\n" + name + ": stays stopped");
 		}
 	}
 
@@ -359,7 +370,7 @@ public class Robot {
 			System.out.println("telling other robot to stop");
 			otherRobotInBug2 = (Robot) obstacle;
 			otherRobotInBug2.stopToAvoidCollisionForBug2();
-			
+
 		}
 	}
 
