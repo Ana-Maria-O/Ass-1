@@ -1,4 +1,4 @@
-package src.SmartWarehouse;
+package src.SmartWarehouse.robotcomponents;
 import java.util.Random;
 
 public class MotorsAndSensors {

@@ -1,4 +1,4 @@
-package src.SmartWarehouse;
+package src.SmartWarehouse.robotcomponents;
 
 public class Radar {
     private boolean isHealty = true;
