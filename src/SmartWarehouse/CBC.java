@@ -13,7 +13,7 @@ class CBC {
     private Deque<Robot> waitingQueue = new ConcurrentLinkedDeque<>();
     private Deque<String> packetRFIDFetchingQueue = new ConcurrentLinkedDeque<>();
     private Lock loadingPositionLock = new ReentrantLock();
-    private Position loadingPosition = new Position(0, 0);
+    private Point loadingPosition = new Point(0, 0);
 
     public void enqueueForFetching(Robot robot, String packetRFID) {
         waitingQueue.addLast(robot);
