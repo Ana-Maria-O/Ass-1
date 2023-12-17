@@ -67,7 +67,7 @@ public class WMS {
         // conveyor belt
         Object[] mission = chooseRobotForMission(shelfLocation, target);
 
-        // TODO: start the mission
+        // TODO: start the mission and set chosen robot's path and target
 
         // TODO: figure out the safety monitor
         // not sure how to have that running in parallel without threads. Probably
@@ -563,15 +563,65 @@ public class WMS {
         }
     }
 
-    // TODO: Send the robot to the nearest charger to charge
+    // Send the robot to the nearest charger to charge
+    // TODO: Test
     private static void sendRobotToCharge(Integer robotIndex) {
+        // Use the abortToCharge function to get the path to the nearest charging
+        // station
+        List<Integer> csPath = abortToCharge(robotIndex);
+
+        // Set the new path of the robot. If the path to the charging station is too
+        // long for its battery level, the setter function will call abortToCharge again
+        // and set the path and target. We won't check for this.
+        robots.get(robotIndex).setCurrentSelectedPath(csPath);
+
+        // Set the target of the robot to the nearest charging station
+        robots.get(robotIndex).setTargetPosition(csPath.get(csPath.size() -1));
+        
+        // If the robot is not on the list of active robots, add it
+        if (!activeRobots.contains(robotIndex)) {
+            activeRobots.add(robotIndex);
+        }
     }
 
-    // TODO: Function called by a robot when it decides to abort its current mission and wants to go charge
+    // Function called by a robot when it decides to abort its current mission and
+    // wants to go charge
     // Returns the path for the robot to the nearest charging station
+    // TODO: Test
     public static List<Integer> abortToCharge(Integer robotIndex) {
-        return new ArrayList<Integer>();
+        // Get the position of the robot
+        int position = robots.get(robotIndex).getCurrentPosition();
+        // Position of the nearest charging station
+        int csPosition;
+
+        // Decide the position of the nearest charging station
+        // The robot is in the top left quarter of the grid
+        if (position < 5 || (position > 9 && position < 15) || (position > 19 && position < 25)
+                || (position > 29 && position < 35) || (position > 39 && position < 45)) {
+            // The closest charging station is in the top left corner of the grid
+            csPosition = 0;
+            // The robot is in the top right quarter of the grid
+        } else if ((position > 4 && position < 10)
+                || (position > 14 && position < 20) && (position > 24 && position < 30)
+                || (position > 34 && position < 40) || (position > 44 && position < 50)) {
+            // The closest charging station is in the top right corner of the grid
+            csPosition = 9;
+            // The robot is in the bottom left quarter of the grid
+        } else if ((position > 49 && position < 55) || (position > 59 && position < 65)
+                || (position > 69 && position < 75) || (position > 79 && position < 85)
+                || (position > 89 && position < 95)) {
+            // The closest charhing station is in the bottom left corner of the grid
+            csPosition = 90;
+            // The robot is in the bottom right quarter of the grid
+        } else {
+            // The closest charging station is in the bottom right of the grid
+            csPosition = 99;
+        }
+
+        // Return the path to the charging station and reroute the other robots
+        return computePathICA(position, csPosition, robotIndex);
     }
+
     // Dummy function for notifications send to WMS
     public static void notify(String message) {
         System.out.println(message);

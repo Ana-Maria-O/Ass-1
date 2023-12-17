@@ -72,6 +72,8 @@ public class Robot {
 		// path to a path to the nearest charging station
 		if (path.size() > batteryLevel) {
 			currentSelectedPath = WMS.abortToCharge(index);
+			// Change the target of the robot
+			setTargetPosition(currentSelectedPath.get(currentSelectedPath.size() - 1));
 		}
 		
 		// If the robot has enough battery for the new path, then select it
