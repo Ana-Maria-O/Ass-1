@@ -1,6 +1,8 @@
-package src.SmartWarehouse;
+package src.SmartWarehouse.robotcomponents;
 
 import java.util.Random;
+
+import src.SmartWarehouse.Packet;
 
 public class WeightSensor {
     private boolean isHealty = true;

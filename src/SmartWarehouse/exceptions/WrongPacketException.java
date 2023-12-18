@@ -1,3 +1,3 @@
-package src.SmartWarehouse;
+package src.SmartWarehouse.exceptions;
 
 public class WrongPacketException extends Exception {}

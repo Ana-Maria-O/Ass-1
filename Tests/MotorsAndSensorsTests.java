@@ -2,10 +2,11 @@ package Tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import org.junit.Test;
-import src.SmartWarehouse.MotorsAndSensors;
+
 import src.SmartWarehouse.Packet;
-import src.SmartWarehouse.RobotArm;
-import src.SmartWarehouse.MotorsAndSensors.MotorsSensors;
+import src.SmartWarehouse.robotcomponents.MotorsAndSensors;
+import src.SmartWarehouse.robotcomponents.RobotArm;
+import src.SmartWarehouse.robotcomponents.MotorsAndSensors.MotorsSensors;
 
 
 public class MotorsAndSensorsTests {

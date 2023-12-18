@@ -1,4 +1,9 @@
-package src.SmartWarehouse;
+package src.SmartWarehouse.robotcomponents;
+
+import src.SmartWarehouse.Packet;
+import src.SmartWarehouse.StatusDisplay;
+import src.SmartWarehouse.WMS;
+
 public class RobotArm {
     Packet storageLocation[];
     // The current position and status of the robot arm
@@ -82,6 +87,12 @@ public class RobotArm {
         ungripPackage();
         storageLocation[0] = new Packet(rfid, 1);
         System.out.println(rfid + " placed in robot's storage space");
+    }
+
+    // Remove package from the robot storage
+    public void removePackageFromRobotStorage() {
+        System.out.println(storageLocation[0] + " removed from robot's storage space");
+        storageLocation[0] = null;        
     }
 
     public double[] computeNeededMovement(double rotation, double height, double length) {

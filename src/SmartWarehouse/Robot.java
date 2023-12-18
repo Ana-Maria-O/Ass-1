@@ -2,8 +2,12 @@ package src.SmartWarehouse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+
+import src.SmartWarehouse.robotcomponents.RobotArm;
 
 public class Robot {
 	private int currentPosition; // Current position of the robot in the warehouse.
@@ -19,6 +23,10 @@ public class Robot {
 	private boolean stayStoppedToAvoidCollisionBug2;
 	String bug2SearchDirection;
 	String name = "R1";
+	int index;
+
+	// Instantiate an arm for the robot
+	RobotArm arm = new RobotArm(new Packet[]{});
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
@@ -66,7 +74,19 @@ public class Robot {
 
 	// Set the current selected path of the robot
 	public void setCurrentSelectedPath(List<Integer> path) {
-		currentSelectedPath = path;
+		// Check if the robot has enough battery for the new path. If not, it tells
+		// the WMS it needs to go to a charging station and changes its current selected
+		// path to a path to the nearest charging station
+		if (path.size() > batteryLevel) {
+			currentSelectedPath = WMS.abortToCharge(index);
+			// Change the target of the robot
+			setTargetPosition(currentSelectedPath.get(currentSelectedPath.size() - 1));
+		}
+		
+		// If the robot has enough battery for the new path, then select it
+		else {
+			currentSelectedPath = path;
+		}
 	}
 
 	// Function used to set the selected path back to an empty list
@@ -304,7 +324,7 @@ public class Robot {
 				takeStepOnPath();
 			}
 		} else {
-			System.out.println("\n" + name +": stays stopped");
+			System.out.println("\n" + name + ": stays stopped");
 		}
 	}
 
@@ -359,7 +379,7 @@ public class Robot {
 			System.out.println("telling other robot to stop");
 			otherRobotInBug2 = (Robot) obstacle;
 			otherRobotInBug2.stopToAvoidCollisionForBug2();
-			
+
 		}
 	}
 
@@ -429,5 +449,16 @@ public class Robot {
 	// Setter function for the battery level
 	public void setBatteryLevel(int newBatteryLevel) {
 		batteryLevel = newBatteryLevel;
+	}
+
+	// Function to fetch package from shelf and into the storage
+	public void fetchPackageFromShelf(int rotation, int height, int length,String rfid) {
+		arm.fetchPackage(rotation, height, length, rfid);
+	}
+
+	// Dummy function to fake placing a package on a conveyor belt
+	public void putPackageOnConveyorBelt(String rfid) {
+		arm.removePackageFromRobotStorage();
+		System.out.println(rfid + " placed on conveyor belt");
 	}
 }
