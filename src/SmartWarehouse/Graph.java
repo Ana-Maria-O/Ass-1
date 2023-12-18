@@ -23,11 +23,8 @@ public class Graph {
 	// A set of positions that are considered obstacles and cannot be traversed.
 	private Set<Integer> obstacles; // static obstacles
 	Map<Integer, Object> dynamicObstacles = new HashMap<>(); // VertexNum and corresponding dynamic obstacle
-	private Set<Integer> obstacles; // static obstacles
-	Map<Integer, Object> dynamicObstacles = new HashMap<>(); // VertexNum and corresponding dynamic obstacle
 
 	// Constructor to initialize the graph with dimensions and obstacles.
-	public Graph(int gridWidth, int gridHeight, Set<Integer> obstacles, Map<Integer, Object> dynamicObstacles) {
 	public Graph(int gridWidth, int gridHeight, Set<Integer> obstacles, Map<Integer, Object> dynamicObstacles) {
 		this.gridWidth = gridWidth;
 		this.gridHeight = gridHeight;
