@@ -26,7 +26,7 @@ public class Robot {
 	int index;
 
 	// Instantiate an arm for the robot
-	RobotArm arm = new RobotArm(new Packet[]{});
+	RobotArm arm = new RobotArm(new Packet[1]);
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
@@ -87,6 +87,8 @@ public class Robot {
 		else {
 			currentSelectedPath = path;
 		}
+
+		currentPathIndex = 0;
 	}
 
 	// Function used to set the selected path back to an empty list

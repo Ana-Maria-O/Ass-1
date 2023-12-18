@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -57,9 +58,9 @@ public class WMS {
         computePathsForGrid();
 
         // Target location of the conveyor
-        int target = 4;
+        int target = 15;
         // Target location of the shelf
-        int shelfLocation = 57;
+        int shelfLocation = 56;
         // RFID of the package
         String RFID = "abc123";
         // Package coordinates on shelf (for the robot arm movements)
@@ -91,9 +92,11 @@ public class WMS {
             while (missionRobot.getCurrentPosition() != target) {
                 // Update the safety timer
                 safety +=1;
-
+				Iterator<Integer> iterator = activeRobots.iterator();
                 // All robots make a step, and we check if any robot reached a destination
-                for (int robot : activeRobots) {
+                while (iterator.hasNext()) {
+					Main.printGraph(graph, robots, new HashMap<>());
+					int robot = iterator.next();
                     Robot selectedRobot = robots.get(robot);
                     selectedRobot.stepTowardsTarget();
                     // If the robot reached its destination, we clear the selected path and we take it out of the active robots list
@@ -102,7 +105,7 @@ public class WMS {
                         // Clear the selected path
                         selectedRobot.clearCurrentSelectedPath();
                         // Remove this robot's index from the active robots list
-                        activeRobots.remove(robot);
+                        iterator.remove();
                     }
                 }
 
