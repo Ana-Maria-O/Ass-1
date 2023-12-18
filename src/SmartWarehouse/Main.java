@@ -21,47 +21,6 @@ public class Main {
 			for (Robot robot : robots) {
 				robotPositions.add(robot.getCurrentPosition());
 				robotTargets.add(robot.getTargetPosition());
-				robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
-			}
-		}
-		System.out.println();
-		for (int y = 0; y < graph.getGridHeight(); y++) {
-			for (int x = 0; x < graph.getGridWidth(); x++) {
-				int vertexNum = graph.pointToVertexNum(new Point(x, y));
-				if (robotPositions.contains(vertexNum)) {
-					System.out.print("\033[92m" + "R" + "\u001B[0m");
-				} else if (dynamicObstacles.containsKey(vertexNum)) {
-					System.out.print("\033[40m" + "X" + "\u001B[0m");
-				} else if (graph.isObstacle(vertexNum)) {
-					System.out.print("\033[91m" + "X" + "\u001B[0m");
-				} else if (robotTargets.contains(vertexNum)) {
-					System.out.print("\033[93m" + "T" + "\u001B[0m");
-				} else if (robotPathsVerticies.contains(vertexNum)) {
-					System.out.print("\033[94m" + "*" + "\u001B[0m");
-				} else {
-					System.out.print("*");
-				}
-			}
-			System.out.println();
-		}
-	}
-
-	// no dynamic obstacles
-	public static void scenario1() {
-		Map<Integer, Object> dynamicObstacles = new HashMap<>();
-		List<Integer> unknownStaticObstacles = Arrays.asList();
-		for (Integer vertexNum : unknownStaticObstacles) {
-			dynamicObstacles.put(vertexNum, new Object());
-		}
-		Graph graph = new Graph(GRID_WIDTH, GRID_HEIGHT, OBSTACLES, dynamicObstacles);
-	public static void printGraph(Graph graph, List<Robot> robots, Map<Integer, Object> dynamicObstacles) {
-		Set<Integer> robotPositions = new HashSet<>();
-		Set<Integer> robotTargets = new HashSet<>();
-		Set<Integer> robotPathsVerticies = new HashSet<>();
-		if (robots != null) {
-			for (Robot robot : robots) {
-				robotPositions.add(robot.getCurrentPosition());
-				robotTargets.add(robot.getTargetPosition());
 				// robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
 			}
 		}
@@ -113,11 +72,11 @@ public class Main {
 			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 		}
 	}
-	
+
 	// need to round obstacles using bug2
 	public static void scenario2() {
 		Map<Integer, Object> dynamicObstacles = new HashMap<>();
-		List<Integer> unknownStaticObstacles = Arrays.asList(6,31);
+		List<Integer> unknownStaticObstacles = Arrays.asList(6, 31);
 		for (Integer vertexNum : unknownStaticObstacles) {
 			dynamicObstacles.put(vertexNum, new Object());
 		}
@@ -140,11 +99,11 @@ public class Main {
 			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 		}
 	}
-	
+
 	// bug2 gets stuck
 	public static void scenario3() {
 		Map<Integer, Object> dynamicObstacles = new HashMap<>();
-		List<Integer> unknownStaticObstacles = Arrays.asList(3,6,31);
+		List<Integer> unknownStaticObstacles = Arrays.asList(3, 6, 31);
 		for (Integer vertexNum : unknownStaticObstacles) {
 			dynamicObstacles.put(vertexNum, new Object());
 		}
@@ -167,7 +126,7 @@ public class Main {
 			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
 		}
 	}
-	
+
 	// task 4
 	// Robots colliding into each other
 	public static void scenario4() {
@@ -199,7 +158,7 @@ public class Main {
 			printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
 		}
 	}
-	
+
 	// task 4
 	// Robots colliding into each other
 	public static void scenario5() {
