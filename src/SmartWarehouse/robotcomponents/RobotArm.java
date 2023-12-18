@@ -89,6 +89,12 @@ public class RobotArm {
         System.out.println(rfid + " placed in robot's storage space");
     }
 
+    // Remove package from the robot storage
+    public void removePackageFromRobotStorage() {
+        System.out.println(storageLocation[0] + " removed from robot's storage space");
+        storageLocation[0] = null;        
+    }
+
     public double[] computeNeededMovement(double rotation, double height, double length) {
         // Get the current position of the robot arm
         double position[] = getArmPosition();

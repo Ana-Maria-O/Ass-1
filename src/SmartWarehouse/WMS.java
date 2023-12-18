@@ -24,6 +24,7 @@ public class WMS {
     // Size of warehouse
     private static final int WAREHOUSE_LENGTH = 10;
     private static final int WAREHOUSE_WIDTH = 10;
+    private static final int SAFETY_TIMER = 5; // How many untits of time in between checks from the safety monitor
 
     // List of robots
     private static List<Robot> robots = new ArrayList<Robot>();
@@ -61,21 +62,79 @@ public class WMS {
         // Target location of the shelf
         int shelfLocation = 57;
         // RFID of the package
-        // String RFID = "abc123";
+        String RFID = "abc123";
+        // Package coordinates on shelf (for the robot arm movements)
+        int[] packageShelfCoord = new int[] {2, 10, 2};
+         
 
         // Decide which robot to send to pick up the package from the shelf to the
         // conveyor belt
         Object[] mission = chooseRobotForMission(shelfLocation, target);
 
-        // TODO: start the mission and set chosen robot's path and target
+        // Give the chosen robot the first path and add it to the active robots list
+        if (mission.length > 0) {
+            // Get the mission elements
+            int robotIndex = ((Integer) mission[0]).intValue();
+            List<Integer> path1 = (List<Integer>)mission[1];
 
-        // TODO: figure out the safety monitor
-        // not sure how to have that running in parallel without threads. Probably
-        // another while loop where we call the monitor after every step of the main
-        // robot
+            // Get the robot selected for the mission
+            Robot missionRobot = robots.get(robotIndex);
+
+            missionRobot.setCurrentSelectedPath(path1);
+            // Set the robot's target
+            missionRobot.setTargetPosition(shelfLocation);
+            // Add the robot to the active robots list
+            activeRobots.add(robotIndex);
+            // Timer for the safety monitor
+            int safety = 0;
+
+            // While loop until the mission is complete
+            while (missionRobot.getCurrentPosition() != target) {
+                // Update the safety timer
+                safety +=1;
+
+                // All robots make a step, and we check if any robot reached a destination
+                for (int robot : activeRobots) {
+                    Robot selectedRobot = robots.get(robot);
+                    selectedRobot.stepTowardsTarget();
+                    // If the robot reached its destination, we clear the selected path and we take it out of the active robots list
+                    // NOTE: This would probably change depending on the scenario
+                    if (selectedRobot.getCurrentPosition() == selectedRobot.getTargetPosition()) {
+                        // Clear the selected path
+                        selectedRobot.clearCurrentSelectedPath();
+                        // Remove this robot's index from the active robots list
+                        activeRobots.remove(robot);
+                    }
+                }
+
+                // We check if the robot's reached the destination of path1 while walking path1
+                if (missionRobot.getCurrentPosition() == shelfLocation && missionRobot.getTargetPosition() == shelfLocation) {
+                    // Get the package off the shelf
+                    missionRobot.fetchPackageFromShelf(packageShelfCoord[0], packageShelfCoord[1], packageShelfCoord[2], RFID);
+                    // Get a route to the conveyor belt and give it to the robot
+                    // We can't use the one we had before because the other robots' routes may differ from when we computed it
+                    missionRobot.setCurrentSelectedPath(computePathICA(shelfLocation, target, robotIndex));
+                    // Set the robot's new target
+                    missionRobot.setTargetPosition(target);
+                    // Put the robot back into the active robots list
+                    activeRobots.add(robotIndex);
+                }
+
+                // We check if the robot reached the conveyor belt and the conveyor belt is the target
+                if (missionRobot.getCurrentPosition() == target && missionRobot.getTargetPosition() == target) {
+                    // The robot places the package on the conveyor belt
+                    missionRobot.putPackageOnConveyorBelt(RFID);
+                }
+
+                // If it is time for the safety monitor to analyze the robots, we call it and reset the timer
+                if (safety == SAFETY_TIMER) {
+                    safetyMonitor();
+                    safety = 0;
+                }
+            }
+        }
 
         // TODO: Create scenarios for deviations
-
     }
 
     private static void initWarehouse() {
@@ -148,7 +207,7 @@ public class WMS {
                 // the path
                 if (robot.getBatteryLevel() >= 2 * (tempPath1.size() + tempPath2.size() + tempPath3.size())) {
                     // If the robot can reach the conveyor, return the robot and the paths
-                    return new Object[] { i, tempPath1, tempPath2 };
+                    return new Object[] {i, tempPath1};
                 }
                 // If it doesn't, send the robot to charge
                 else {
@@ -156,7 +215,7 @@ public class WMS {
                 }
             }
         }
-        // If no robot is available, return an empty list
+        // If no robot is available, return an empty array
         return new Object[] {};
     }
 
@@ -588,6 +647,7 @@ public class WMS {
     // wants to go charge
     // Returns the path for the robot to the nearest charging station
     // TODO: Test
+    // TODO: Resume the mission after charging if robot has package
     public static List<Integer> abortToCharge(Integer robotIndex) {
         // Get the position of the robot
         int position = robots.get(robotIndex).getCurrentPosition();

@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import src.SmartWarehouse.robotcomponents.RobotArm;
+
 public class Robot {
 	private int currentPosition; // Current position of the robot in the warehouse.
 	private int targetPosition; // Target position in the warehouse.
@@ -20,6 +22,9 @@ public class Robot {
 	String bug2SearchDirection;
 	String name = "R1";
 	int index;
+
+	// Instantiate an arm for the robot
+	RobotArm arm = new RobotArm(new Packet[]{});
 
 	// A map of all paths in the warehouse. The key is a position, and the value is
 	// a list of paths (each path is a list of integers representing positions).
@@ -442,5 +447,16 @@ public class Robot {
 	// Setter function for the battery level
 	public void setBatteryLevel(int newBatteryLevel) {
 		batteryLevel = newBatteryLevel;
+	}
+
+	// Function to fetch package from shelf and into the storage
+	public void fetchPackageFromShelf(int rotation, int height, int length,String rfid) {
+		arm.fetchPackage(rotation, height, length, rfid);
+	}
+
+	// Dummy function to fake placing a package on a conveyor belt
+	public void putPackageOnConveyorBelt(String rfid) {
+		arm.removePackageFromRobotStorage();
+		System.out.println(rfid + " placed on conveyor belt");
 	}
 }
