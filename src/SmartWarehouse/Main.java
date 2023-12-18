@@ -21,7 +21,7 @@ public class Main {
 			for (Robot robot : robots) {
 				robotPositions.add(robot.getCurrentPosition());
 				robotTargets.add(robot.getTargetPosition());
-				// robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
+				robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
 			}
 		}
 		System.out.println();

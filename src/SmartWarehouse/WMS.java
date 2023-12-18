@@ -10,6 +10,8 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Random;
 
+import static org.junit.Assert.assertNull;
+
 import java.lang.Math;
 
 public class WMS {
@@ -259,6 +261,7 @@ public class WMS {
 
         // List of all the chromosomes
         List<List<Integer>> chromosomes = new ArrayList<List<Integer>>();
+		chromosomes.add(new ArrayList<Integer>());
 
         // List of all the fitness levels
         List<Double> fitnesses = new ArrayList<Double>();
@@ -274,9 +277,10 @@ public class WMS {
 
         // If there are other active robots, continue the ICA
 
-        // Add the waypoint of currentPath to the first chromosome
-        chromosomes.add(new ArrayList<Integer>());
-        chromosomes.get(0).add(currentPath.get(currentPath.size() / 2));
+        // Add the waypoint of currentPath to the first chromosome if the robot is not active
+		if (!activeRobots.contains(rIndex)) {
+        	chromosomes.get(0).add(currentPath.get(currentPath.size() / 2));
+		}
 
         // For each active robot, get the shortest path between its target and current
         // position, as well as that path's waypoint
@@ -626,8 +630,10 @@ public class WMS {
             Robot robot = robots.get(robotIndex);
             // If the robot's current position is not in the robot's path, recompute the
             // paths of all robots
-            if (!robot.getCurrentSelectedPath()
-                    .contains(robot.getCurrentPosition())) {
+			List<Integer> a = robot.getCurrentSelectedPath();
+			int b = robot.getCurrentPosition();
+            if (!a
+                    .contains(b)) {
                 // The function returns the path of the robot, but because it is already in the
                 // activeRobots list its path is already changed by the algorithm so we don't
                 // need to take more actions here
