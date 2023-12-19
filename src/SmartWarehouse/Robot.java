@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import javafx.scene.effect.Light.Point;
 import src.SmartWarehouse.robotcomponents.RobotArm;
 
 public class Robot {
@@ -71,6 +72,14 @@ public class Robot {
 	public List<Integer> getCurrentSelectedPath() {
 		return currentSelectedPath;
 	}
+
+    // Method to get the next step's position if the robot continues on its current path.
+    public int getNextStepPosition() {
+        if (currentSelectedPath == null || currentSelectedPath.isEmpty() || currentPathIndex >= currentSelectedPath.size() - 1) {
+            return -1; // Indicates there's no next position (e.g., the path is complete or not set).
+        }
+        return currentSelectedPath.get(currentPathIndex + 1);
+    }
 
 	// Set the current selected path of the robot
 	public void setCurrentSelectedPath(List<Integer> path) {
