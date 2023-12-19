@@ -97,7 +97,7 @@ public class WMS {
 				Iterator<Integer> iterator = activeRobots.iterator();
                 // All robots make a step, and we check if any robot reached a destination
                 while (iterator.hasNext()) {
-					Main.printGraph(graph, robots, new HashMap<>());
+					StatusDisplay.printGraph(graph, robots);
 					int robot = iterator.next();
                     Robot selectedRobot = robots.get(robot);
                     selectedRobot.stepTowardsTarget();

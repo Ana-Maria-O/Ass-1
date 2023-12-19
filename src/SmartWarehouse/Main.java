@@ -13,39 +13,6 @@ public class Main {
 	static final int GRID_HEIGHT = 10;
 	static final Set<Integer> OBSTACLES = new HashSet<>(Arrays.asList(7, 8, 28, 34));
 
-	public static void printGraph(Graph graph, List<Robot> robots, Map<Integer, Object> dynamicObstacles) {
-		Set<Integer> robotPositions = new HashSet<>();
-		Set<Integer> robotTargets = new HashSet<>();
-		Set<Integer> robotPathsVerticies = new HashSet<>();
-		if (robots != null) {
-			for (Robot robot : robots) {
-				robotPositions.add(robot.getCurrentPosition());
-				robotTargets.add(robot.getTargetPosition());
-				robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
-			}
-		}
-		System.out.println();
-		for (int y = 0; y < graph.getGridHeight(); y++) {
-			for (int x = 0; x < graph.getGridWidth(); x++) {
-				int vertexNum = graph.pointToVertexNum(new Point(x, y));
-				if (robotPositions.contains(vertexNum)) {
-					System.out.print("\033[92m" + "R" + "\u001B[0m");
-				} else if (dynamicObstacles.containsKey(vertexNum)) {
-					System.out.print("\033[40m" + "X" + "\u001B[0m");
-				} else if (graph.isObstacle(vertexNum)) {
-					System.out.print("\033[91m" + "X" + "\u001B[0m");
-				} else if (robotTargets.contains(vertexNum)) {
-					System.out.print("\033[93m" + "T" + "\u001B[0m");
-				} else if (robotPathsVerticies.contains(vertexNum)) {
-					System.out.print("\033[94m" + "*" + "\u001B[0m");
-				} else {
-					System.out.print("*");
-				}
-			}
-			System.out.println();
-		}
-	}
-
 	// no dynamic obstacles
 	public static void scenario1() {
 		Map<Integer, Object> dynamicObstacles = new HashMap<>();
@@ -65,11 +32,11 @@ public class Main {
 		List<Integer> robotPath = robot.getCurrentSelectedPath();
 		System.out.print("Current path: ");
 		System.out.println(robotPath);
-		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		StatusDisplay.printGraph(graph, Arrays.asList(robot));
 
 		while (!robot.pathIsComplete()) {
 			robot.stepTowardsTarget();
-			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+			StatusDisplay.printGraph(graph, Arrays.asList(robot));
 		}
 	}
 
@@ -92,11 +59,11 @@ public class Main {
 		List<Integer> robotPath = robot.getCurrentSelectedPath();
 		System.out.print("Current path: ");
 		System.out.println(robotPath);
-		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		StatusDisplay.printGraph(graph, Arrays.asList(robot));
 
 		while (!robot.pathIsComplete()) {
 			robot.stepTowardsTarget();
-			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+			StatusDisplay.printGraph(graph, Arrays.asList(robot));
 		}
 	}
 
@@ -119,11 +86,11 @@ public class Main {
 		List<Integer> robotPath = robot.getCurrentSelectedPath();
 		System.out.print("Current path: ");
 		System.out.println(robotPath);
-		printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+		StatusDisplay.printGraph(graph, Arrays.asList(robot));
 
 		while (!robot.pathIsComplete()) {
 			robot.stepTowardsTarget();
-			printGraph(graph, Arrays.asList(robot), dynamicObstacles);
+			StatusDisplay.printGraph(graph, Arrays.asList(robot));
 		}
 	}
 
@@ -147,7 +114,7 @@ public class Main {
 		System.out.println("Current paths: ");
 		System.out.println(robot1.getCurrentSelectedPath());
 		System.out.println(robot2.getCurrentSelectedPath());
-		printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
+		StatusDisplay.printGraph(graph, Arrays.asList(robot1, robot2));
 
 		while (!robot1.pathIsComplete() && !robot2.pathIsComplete()) {
 			System.out.println("R1 POS: " + robot1.getCurrentPosition());
@@ -155,7 +122,7 @@ public class Main {
 			System.out.println("R2 POS: " + robot2.getCurrentPosition());
 			robot2.stepTowardsTarget();
 
-			printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
+			StatusDisplay.printGraph(graph, Arrays.asList(robot1, robot2));
 		}
 	}
 
@@ -179,7 +146,7 @@ public class Main {
 		System.out.println("Current paths: ");
 		System.out.println(robot1.getCurrentSelectedPath());
 		System.out.println(robot2.getCurrentSelectedPath());
-		printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
+		StatusDisplay.printGraph(graph, Arrays.asList(robot1, robot2));
 
 		while (!robot1.pathIsComplete() && !robot2.pathIsComplete()) {
 			System.out.println("R1 POS: " + robot1.getCurrentPosition());
@@ -187,7 +154,7 @@ public class Main {
 			System.out.println("R2 POS: " + robot2.getCurrentPosition());
 			robot2.stepTowardsTarget();
 
-			printGraph(graph, Arrays.asList(robot1, robot2), dynamicObstacles);
+			StatusDisplay.printGraph(graph, Arrays.asList(robot1, robot2));
 		}
 	}
 
