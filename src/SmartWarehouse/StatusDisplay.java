@@ -25,16 +25,17 @@ public class StatusDisplay {
         System.out.println();
     }
 
-    public static void printGraph(Graph graph, List<Robot> robots) {
-    	Set<Integer> robotPositions = new HashSet<>();
-    	Set<Integer> robotTargets = new HashSet<>();
-    	Set<Integer> robotPathsVerticies = new HashSet<>();
-    	if (robots != null) {
-    		for (Robot robot : robots) {
-    			robotPositions.add(robot.getCurrentPosition());
-    			robotTargets.add(robot.getTargetPosition());
-    			robotPathsVerticies.addAll(robot.getCurrentSelectedPath());
-    		}
+	public static void printGraph(Graph graph, List<Robot> robots) {
+		Set<Integer> robotPositions = new HashSet<>();
+		Set<Integer> robotTargets = new HashSet<>();
+		Set<Integer> robotPathsVerticies = new HashSet<>();
+		if (robots != null) {
+			for (Robot robot : robots) {
+				robotPositions.add(robot.getCurrentPosition());
+				robotTargets.add(robot.getTargetPosition());
+				robotPathsVerticies.addAll(robot.getCurrentSelectedPath().subList(robot.currentPathIndex,
+						robot.getCurrentSelectedPath().size()));
+			}
     	}
     	System.out.println();
     	for (int y = 0; y < graph.getGridHeight(); y++) {
