@@ -27,6 +27,8 @@ public class Robot {
 	int index;
 	Task task;
 	ChargeTask chargeTask; // chargeTask has priority over task
+	// True if the robot has to abort its task to charge
+	boolean abortingToCharge = false;
 
 	// Instantiate an arm for the robot
 	RobotArm arm = new RobotArm(new Packet[1]);
@@ -87,10 +89,15 @@ public class Robot {
 		// the WMS it needs to go to a charging station and changes its current selected
 		// path to a path to the nearest charging station
 		if (path.size() > batteryLevel) {
-			throw new Error("Too low battery");
+			if (abortingToCharge) {
+				throw new Error("Not enough battery to charge");
+			}
+			System.out.println("ABORT TO CHARGE: Too low battery");
+			abortingToCharge = true;
+			WMS.abortToCharge(index);
 		}
 		
-		// If the robot has enough battery for the new path, then select it
+		// If the robot has enough battery for the new path or it needs to charge, then select it
 		else {
 			currentSelectedPath = path;
 		}
@@ -414,7 +421,7 @@ public class Robot {
 		}
 	}
 
-	private void deactivateBug2() {
+	public void deactivateBug2() {
 		currentPathIndex = currentSelectedPath.indexOf(currentPosition);
 		bug2IsActive = false;
 		bug2SearchDirection = null;
@@ -427,6 +434,7 @@ public class Robot {
 	}
 
 	public void bug2algorithmStep() {
+		remainingPathToFindUsingBug2 = currentSelectedPath.subList(currentPathIndex + 1, currentSelectedPath.size());
 		if (bug2SearchDirection == null) {
 			System.out.println("SEARCH DIRECTION IS NOW LEFT");
 			bug2SearchDirection = "left";

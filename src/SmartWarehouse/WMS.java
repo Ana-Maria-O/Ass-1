@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -71,14 +72,16 @@ public class WMS {
 		int[] packageShelfCoord = new int[] { 2, 10, 2 };
 
 		// uncomment to show robot being sent to recharge
-		//robots.get(0).setBatteryLevel(5);
+		// robots.get(0).setBatteryLevel(5);
+
 		// Decide which robot to send to pick up the package from the shelf to the
 		// conveyor belt
 		Object[] mission = chooseRobotForMission(shelfLocation1, cbLocation1);
 		int robotIndex = ((Integer) mission[0]).intValue();
 		List<Integer> pathToShelf = (List<Integer>) mission[1];
-		Task task1 = new Task(robots.get(robotIndex), pathToShelf, shelfLocation1, cbLocation1, packageShelfCoord, RFID);
-		
+		Task task1 = new Task(robots.get(robotIndex), pathToShelf, shelfLocation1, cbLocation1, packageShelfCoord,
+				RFID);
+
 		/*
 		 * Uncomment the below uncommented lines to see failing test case
 		 * (uncomment choosing mission2 + tasks with two tasks)
@@ -87,16 +90,33 @@ public class WMS {
 		// Object[] mission2 = chooseRobotForMission(shelfLocation2, cbLocation2);
 		// int robotIndex2 = ((Integer) mission2[0]).intValue();
 		// List<Integer> pathToShelf2 = (List<Integer>) mission2[1];
-		// Task task2 = new Task(robots.get(robotIndex2), pathToShelf2, shelfLocation2, cbLocation2, packageShelfCoord, RFID);
+		// Task task2 = new Task(robots.get(robotIndex2), pathToShelf2, shelfLocation2,
+		// cbLocation2, packageShelfCoord, RFID);
 
 		StatusDisplay.printGraph(graph, robots);
+
+		// Timer to detect when to run the safety monitor
+		int safety = 0;
+
 		while (true) {
 			boolean allDone = true;
+			// Artificially lower robot's battery level to test aborting task to charge
+			if (robots.get(0).getCurrentPosition() == 21) {
+			robots.get(0).setBatteryLevel(5);
+			}
 			for (Robot robot : robots) {
 				if (!robot.taskIsDone()) {
 					allDone = false;
 				}
 				robot.timeStep();
+				safety += 1;
+
+				// If it is time for the safety monitor to analyze the robots, we call it and
+				// reset the timer
+				if (safety == SAFETY_TIMER) {
+					safetyMonitor();
+					safety = 0;
+				}
 			}
 			StatusDisplay.printGraph(graph, robots);
 			try {
@@ -109,16 +129,6 @@ public class WMS {
 		}
 
 		System.exit(0);
-
-		
-		int safety = 0;
-		// If it is time for the safety monitor to analyze the robots, we call it and
-		// reset the timer
-		if (safety == SAFETY_TIMER) {
-			safetyMonitor();
-			safety = 0;
-		}
-		// TODO: Create scenarios for deviations
 	}
 
 	// Method to abort the current task an emergency stop command, a critical error,
@@ -130,7 +140,7 @@ public class WMS {
 		notify("Task aborted for Robot " + robotIndex);
 	}
 
-// Method to check and avoid collisions
+	// Method to check and avoid collisions
 	private static void checkAndAvoidCollision() {
 		for (Integer robotIndex : activeRobots) {
 			Robot robot = robots.get(robotIndex);
@@ -151,7 +161,8 @@ public class WMS {
 		}
 	}
 
-// Method hecks the battery level for the robot and takes it to the CS if its below a specific level.
+	// Method hecks the battery level for the robot and takes it to the CS if its
+	// below a specific level.
 	private static void checkBatteryLevels() {
 		for (Integer robotIndex : activeRobots) {
 			Robot robot = robots.get(robotIndex);
@@ -164,7 +175,8 @@ public class WMS {
 		}
 	}
 
-// Method to compute the path to the nearest charging station from the robot's current position.
+	// Method to compute the path to the nearest charging station from the robot's
+	// current position.
 	private static List<Integer> computePathToNearestChargingStation(int currentRobotPosition) {
 		int nearestCSPosition = -1;
 		int shortestDistance = Integer.MAX_VALUE;
@@ -196,8 +208,13 @@ public class WMS {
 		// The shelves
 		obstacles.addAll(shelfPositions);
 
+		// Add a dynamic obstacle
+		Map<Integer, Object> dynamicObstacles = new HashMap<>();
+		int obstaclePosition = 31;
+		dynamicObstacles.put(obstaclePosition, new Object());
+
 		// Create the graph
-		graph = new Graph(WAREHOUSE_WIDTH, WAREHOUSE_LENGTH, obstacles, new HashMap<Integer, Object>());
+		graph = new Graph(WAREHOUSE_WIDTH, WAREHOUSE_LENGTH, obstacles, dynamicObstacles);
 
 		// Robots
 		for (int i = 0; i < ROBOTNUMBER; i++) {
@@ -222,24 +239,24 @@ public class WMS {
 			// Find the nearest charging station to the conveyor belt location
 			Integer chargingStation;
 			switch (target) {
-			case 4:
-				chargingStation = 0;
-				break;
+				case 4:
+					chargingStation = 0;
+					break;
 
-			case 5:
-				chargingStation = 9;
-				break;
+				case 5:
+					chargingStation = 9;
+					break;
 
-			case 94:
-				chargingStation = 90;
-				break;
+				case 94:
+					chargingStation = 90;
+					break;
 
-			case 95:
-				chargingStation = 99;
-				break;
+				case 95:
+					chargingStation = 99;
+					break;
 
-			default:
-				chargingStation = 0;
+				default:
+					chargingStation = 0;
 			}
 			// If the robot is in the active robots list or it isn't in the position of
 			// a charging station, its path is computed
@@ -314,6 +331,9 @@ public class WMS {
 		// Get the shortest path between start and end
 		List<Integer> currentPath = allPaths[start][end];
 
+		// Set the target of the current robot
+		robots.get(rIndex).setTargetPosition(end);
+
 		// If there is no other active robot, then return this one
 		if (activeRobots.size() == 0) {
 
@@ -325,6 +345,7 @@ public class WMS {
 		// Add the waypoint of currentPath to the first chromosome if the robot is not
 		// active
 		if (!activeRobots.contains(rIndex)) {
+			// Add the waypoint
 			chromosomes.get(0).add(currentPath.get(currentPath.size() / 2));
 		}
 
@@ -361,7 +382,11 @@ public class WMS {
 
 		// Fitness function for each chromosome
 		for (int chromosomeIndex = 0; chromosomeIndex < chromosomes.size(); chromosomeIndex++) {
-			fitnesses.add(Fitness(chromosomes.get(chromosomeIndex), robotIndexes));
+			try {
+				fitnesses.add(Fitness(chromosomes.get(chromosomeIndex), robotIndexes));
+			} catch (Error err) {
+				System.out.println("Mutation failed, chromosome: " + chromosomes.get(chromosomeIndex));
+			}
 		}
 
 		// While loop for "breeding"
@@ -377,23 +402,25 @@ public class WMS {
 
 			// Loop through the list of fitness values
 			// Only works for MUTATIONS = 4
-			for (int j = 1; j < fitnesses.size() && j != goodChromIndex[0] && j != goodChromIndex[3]; j++) {
-				// Check if any fitness values have been evaluated, if not then give the current
-				// one to goodChrom[1]]
-				if (goodChrom[1] == -1) {
-					goodChrom[1] = fitnesses.get(j);
-					goodChromIndex[1] = j;
-					// If the current value is smaller than goodChrom2 then move it to goodChrom[2]
-					// and give the current one to goodChrom[1]
-				} else if (fitnesses.get(j) < goodChrom[1]) {
-					goodChrom[2] = goodChrom[1];
-					goodChromIndex[2] = goodChromIndex[1];
-					goodChrom[1] = fitnesses.get(j);
-					goodChromIndex[1] = j;
-					// Otherwise give the current one to goodChrom[2]
-				} else {
-					goodChrom[2] = fitnesses.get(j);
-					goodChromIndex[2] = j;
+			for (int j = 0; j < fitnesses.size(); j++) {
+				if (j != goodChromIndex[0] && j != goodChromIndex[3]) {
+					// Check if any fitness values have been evaluated, if not then give the current
+					// one to goodChrom[1]]
+					if (goodChrom[1] == -1) {
+						goodChrom[1] = fitnesses.get(j);
+						goodChromIndex[1] = j;
+						// If the current value is smaller than goodChrom2 then move it to goodChrom[2]
+						// and give the current one to goodChrom[1]
+					} else if (fitnesses.get(j) < goodChrom[1]) {
+						goodChrom[2] = goodChrom[1];
+						goodChromIndex[2] = goodChromIndex[1];
+						goodChrom[1] = fitnesses.get(j);
+						goodChromIndex[1] = j;
+						// Otherwise give the current one to goodChrom[2]
+					} else {
+						goodChrom[2] = fitnesses.get(j);
+						goodChromIndex[2] = j;
+					}
 				}
 			}
 
@@ -410,36 +437,49 @@ public class WMS {
 			// chromosome in the population
 			for (List<Integer> child : children) {
 				// Compute fitness
-				double newFitness = Fitness(child, robotIndexes);
+				try {
+					double newFitness = Fitness(child, robotIndexes);
+					// True if some chromosome was replaced with the current child
+					boolean replaced = false;
 
-				// See if it can replace an old chromosome. The for loop starts with the
-				// smallest fitness value
-				for (int j = 0; j < MUTATIONS; j++) {
-					// If the new chromosome has lower fitness value than the old chromosome, insert
-					// it
-					if (newFitness < goodChrom[j]) {
-						// Save the index of the chromosome that will be replaced (aka the biggest one)
-						int replacedIndex = goodChromIndex[MUTATIONS - 2];
+					// See if it can replace an old chromosome. The for loop starts with the
+					// smallest fitness value
+					for (int j = 0; j < MUTATIONS && !replaced; j++) {
+						// If the new chromosome has lower fitness value than the old chromosome, insert
+						// it
+						if (newFitness < goodChrom[j]) {
+							// Save the index of the chromosome that will be replaced (aka the biggest one)
+							int replacedIndex = goodChromIndex[MUTATIONS - 1];
 
-						// Shift the arrays with {values for fitness} and {their indexes in the
-						// chromosomes
-						// list} to make space for the new chromosome
-						for (int k = MUTATIONS - 2; k >= j; k--) {
-							goodChrom[k + 1] = goodChrom[k];
-							goodChromIndex[k + 1] = goodChromIndex[k];
+							// Shift the arrays with {values for fitness} and {their indexes in the
+							// chromosomes
+							// list} to make space for the new chromosome
+							for (int k = MUTATIONS - 2; k >= j; k--) {
+								goodChrom[k + 1] = goodChrom[k];
+								goodChromIndex[k + 1] = goodChromIndex[k];
+							}
+
+							// Insert the new chromosome fitness level into the array withordered fitness
+							// levels
+							goodChrom[j] = newFitness;
+							// Insert the new chromosome's index into the array with indexes of the ordered
+							// chromosomes
+							goodChromIndex[j] = replacedIndex;
+							// Replace the chromosome with the previously biggest fitness value with the new
+							// chromosome
+							chromosomes.set(replacedIndex, child);
+
+							// Set replaced to true
+							replaced = true;
+
+							// Wow I can't believe i just did that. I hate myself lol
 						}
-
-						// Insert the new chromosome fitness level into the array withordered fitness
-						// levels
-						goodChrom[j] = newFitness;
-						// Insert the new chromosome's index into the array with indexes of the ordered
-						// chromosomes
-						goodChromIndex[j] = replacedIndex;
-						// Replace the chromosome with the previously biggest fitness value with the new
-						// chromosome
-						chromosomes.set(replacedIndex, child);
-
-						// Wow I can't believe i just did that. I hate myself lol
+					}
+				} catch (Error err) {
+					if (children.indexOf(child) == 0) {
+						System.err.println("Crossover failed, chromosome: " + child);
+					} else {
+						System.err.println("Mutation of children failed, chromosome: " + child);
 					}
 				}
 			}
@@ -463,19 +503,28 @@ public class WMS {
 		// Recompute the new paths for all the robots and replaces their old paths
 		// This condition is true if the robot with index rIndex is currently active
 		if (activeRobots.size() == robotIndexes.size()) {
-
 			// Each element in the chromosome corresponds to an active robot
 			for (int i = 0; i < winning.size(); i++) {
 				// Replace the robot's old path with a newly computed one
-				robots.get(robotIndexes.get(i))
-						.setCurrentSelectedPath(pathFromWaypoint(robotIndexes.get(i), winning.get(i)));
+				try {
+					robots.get(robotIndexes.get(i))
+							.setCurrentSelectedPath(pathFromWaypoint(robotIndexes.get(i), winning.get(i)));
+				} catch (Error error) {
+					System.out.println("Chromosome: " + winning.get(i));
+					System.out.println(error.getMessage());
+				}
 			}
 			// Otherwise, only replace the paths of the active robots
 		} else {
 			for (int i = 1; i < winning.size(); i++) {
 				// Replace the robot's old path with a newly computed one
-				robots.get(robotIndexes.get(i))
-						.setCurrentSelectedPath(pathFromWaypoint(robotIndexes.get(i), winning.get(i)));
+				try {
+					robots.get(robotIndexes.get(i))
+							.setCurrentSelectedPath(pathFromWaypoint(robotIndexes.get(i), winning.get(i)));
+				} catch (Error error) {
+					System.out.println("Chromosome: " + winning.get(i));
+					System.out.println(error.getMessage());
+				}
 			}
 		}
 
@@ -497,21 +546,24 @@ public class WMS {
 		Random rand = new Random();
 
 		// Choose a random item in the chromosome to mutate
-		int mutatedItem = chromosome.get(rand.nextInt(chromosome.size()));
+		int mutatedItem = rand.nextInt(chromosome.size());
 
 		// Create the mutated chromosome
 		List<Integer> mutation = new ArrayList<Integer>();
 		for (int i = 0; i < chromosome.size(); i++) {
 			// If the current item was the one chosen for mutation, we mutate it
 			if (i == mutatedItem) {
-				// Make sure the mutation isn't 0 and that the mutated value can still be in the
-				// grid
+				// Make sure the mutation isn't 0 or on an occupied position and that the
+				// mutated value can still be in the grid
 				int mutatedValue = rand.nextInt(2 * MAX_MUTATION + 1) - MAX_MUTATION;
 
 				// Keep computing the mutation until all the conditions in the comment above are
 				// satisfied
 				while (mutatedValue == 0 || chromosome.get(i) + mutatedValue < 0
-						|| chromosome.get(i) + mutatedValue >= WAREHOUSE_LENGTH * WAREHOUSE_WIDTH) {
+						|| chromosome.get(i) + mutatedValue >= WAREHOUSE_LENGTH * WAREHOUSE_WIDTH
+						|| csPositions.contains(chromosome.get(i) + mutatedValue)
+						|| cbPositions.contains(chromosome.get(i) + mutatedValue)
+						|| shelfPositions.contains(chromosome.get(i) + mutatedValue)) {
 
 					mutatedValue = rand.nextInt(2 * MAX_MUTATION + 1) - MAX_MUTATION;
 				}
@@ -530,7 +582,7 @@ public class WMS {
 
 	// Fitness function for a chromosome
 	// Check Lecture 7 slides 42-44 for the function description
-	private static double Fitness(List<Integer> chromosome, List<Integer> robotIndexes) {
+	private static double Fitness(List<Integer> chromosome, List<Integer> robotIndexes) throws Error {
 		// Constants for the function
 		final double ALPHA = 0.5 * activeRobots.size();
 		final double BETA = Math.sqrt(WAREHOUSE_LENGTH * WAREHOUSE_WIDTH) * activeRobots.size();
@@ -550,12 +602,16 @@ public class WMS {
 		// represented by the waypoint
 		for (int i = 0; i < chromosome.size(); i++) {
 			// Path defined by the waypoint
-			List<Integer> newPath = pathFromWaypoint(robotIndexes.get(i), chromosome.get(i));
-			// Add it to the list of paths
-			chPaths.add(newPath);
+			try {
+				List<Integer> newPath = pathFromWaypoint(robotIndexes.get(i), chromosome.get(i));
+				// Add it to the list of paths
+				chPaths.add(newPath);
 
-			// Compute the length of the path and add it to the distance metric
-			distanceMetrics += newPath.size();
+				// Compute the length of the path and add it to the distance metric
+				distanceMetrics += newPath.size();
+			} catch (Error error) {
+				throw new Error("Bad chromosome " + chromosome.get(i));
+			}
 		}
 
 		// Number and safety level of cross points
@@ -632,20 +688,54 @@ public class WMS {
 			int result = rand.nextInt(3);
 
 			switch (result) {
-			// If the result is 0, then the child inherits the feature from parent1
-			case 0:
-				child.add(parent1.get(i));
-				break;
+				// If the result is 0, then the child inherits the feature from parent1
+				case 0:
+					child.add(parent1.get(i));
+					break;
 
-			// If the result is 1, then the child inherits the feature from parent2
-			case 1:
-				child.add(parent2.get(i));
-				break;
+				// If the result is 1, then the child inherits the feature from parent2
+				case 1:
+					child.add(parent2.get(i));
+					break;
 
-			// Otherwise the result is 3, which case the child's feature will be the average
-			// of the parents' features
-			default:
-				child.add((parent1.get(i) + parent2.get(i)) / 2);
+				// Otherwise the result is 3, which case the child's feature will be the average
+				// of the parents' features
+				default:
+					int average = (parent1.get(i) + parent2.get(i)) / 2;
+					// If the average is an invalid position, we pick a spot next to the one pointed
+					// to by the average
+					if (csPositions.contains(average) || cbPositions.contains(average)
+							|| shelfPositions.contains(average) || average < 0
+							|| average >= WAREHOUSE_LENGTH * WAREHOUSE_WIDTH) {
+						// Modify the position of the average if the new position meets the criteria
+						// Move average to the right
+						if (csPositions.contains(average + 1) || cbPositions.contains(average + 1)
+								|| shelfPositions.contains(average + 1) || average + 1 < 0
+								|| average + 1 >= WAREHOUSE_LENGTH * WAREHOUSE_WIDTH) {
+							average += 1;
+						}
+						// Move average to the left
+						else if (csPositions.contains(average - 1) || cbPositions.contains(average - 1)
+								|| shelfPositions.contains(average - 1) || average - 1 < 0
+								|| average - 1 >= WAREHOUSE_LENGTH * WAREHOUSE_WIDTH) {
+							average -= 1;
+						}
+						// Move average up
+						else if (csPositions.contains(average - 10) || cbPositions.contains(average - 10)
+								|| shelfPositions.contains(average - 10) || average - 10 < 0
+								|| average - 10 >= WAREHOUSE_LENGTH * WAREHOUSE_WIDTH) {
+							average -= 10;
+							// Move average down
+						} else if (csPositions.contains(average + 10) || cbPositions.contains(average + 10)
+								|| shelfPositions.contains(average + 10) || average + 10 < 0
+								|| average + 10 >= WAREHOUSE_LENGTH * WAREHOUSE_WIDTH) {
+							average += 10;
+						} else {
+							throw new Error("Cell " + average + " is blocked on all sides.");
+						}
+					}
+
+					child.add(average);
 			}
 		}
 
@@ -653,14 +743,19 @@ public class WMS {
 	}
 
 	// TODO: Test
-	private static List<Integer> pathFromWaypoint(int robotIndex, int waypoint) {
+	private static List<Integer> pathFromWaypoint(int robotIndex, int waypoint) throws Error {
 		List<Integer> newPath = new ArrayList<Integer>();
 		// Select and add the path from the robot to the waypoint
 		newPath.addAll(allPaths[robots.get(robotIndex).getCurrentPosition()][waypoint]);
 		// Remove the last element because it repeats in the next path
-		newPath.remove(newPath.size() - 1);
-		// Select and add the path from the waypoint to the robot's target
-		newPath.addAll(allPaths[waypoint][robots.get(robotIndex).getTargetPosition()]);
+		if (newPath.size() < 1) {
+			throw new Error("Wrong waypoint " + waypoint);
+		} else {
+			newPath.remove(newPath.size() - 1);
+			// Select and add the path from the waypoint to the robot's target
+			int target = robots.get(robotIndex).getTargetPosition();
+			newPath.addAll(allPaths[waypoint][target]);
+		}
 
 		return newPath;
 	}
@@ -671,18 +766,21 @@ public class WMS {
 	private static void safetyMonitor() {
 		// Check every active robot's current position and see if it is in the robot's
 		// current selected path
-		for (Integer robotIndex : activeRobots) {
+		for (int robotIndex = 0; robotIndex < robots.size(); robotIndex++) {
 			// Current robot
-			Robot robot = robots.get(robotIndex);
-			// If the robot's current position is not in the robot's path, recompute the
-			// paths of all robots
-			List<Integer> a = robot.getCurrentSelectedPath();
-			int b = robot.getCurrentPosition();
-			if (!a.contains(b)) {
-				// The function returns the path of the robot, but because it is already in the
-				// activeRobots list its path is already changed by the algorithm so we don't
-				// need to take more actions here
-				computePathICA(robot.getCurrentPosition(), robot.getTargetPosition(), robotIndex);
+			if (activeRobots.contains(robotIndex)) {
+				Robot robot = robots.get(robotIndex);
+				// If the robot's current position is not in the robot's path, recompute the
+				// paths of all robots
+				List<Integer> a = robot.getCurrentSelectedPath();
+				int b = robot.getCurrentPosition();
+				if (!a.contains(b)) {
+					System.out.println("SAFETY MONITOR ACTIVATED. RECOMPUTING PATHS");
+					// The function returns the path of the robot, but because it is already in the
+					// activeRobots list its path is already changed by the algorithm so we don't
+					// need to take more actions here
+					computePathICA(robot.getCurrentPosition(), robot.getTargetPosition(), robotIndex);
+				}
 			}
 		}
 	}
@@ -714,7 +812,7 @@ public class WMS {
 		} else if ((position > 49 && position < 55) || (position > 59 && position < 65)
 				|| (position > 69 && position < 75) || (position > 79 && position < 85)
 				|| (position > 89 && position < 95)) {
-			// The closest charhing station is in the bottom left corner of the grid
+			// The closest charging station is in the bottom left corner of the grid
 			csPosition = 90;
 			// The robot is in the bottom right quarter of the grid
 		} else {
@@ -729,7 +827,8 @@ public class WMS {
 	}
 
 	/*
-	 * We can't calculate a path directly into a charging station because it's seen as an obstacle
+	 * We can't calculate a path directly into a charging station because it's seen
+	 * as an obstacle
 	 * To solve it we can convert charging station positions to loading position
 	 */
 	public static int csPositionToCsLoadingPosition(int csPosition) {

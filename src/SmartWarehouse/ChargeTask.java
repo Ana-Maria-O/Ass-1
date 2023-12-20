@@ -13,6 +13,7 @@ public class ChargeTask {
         System.out.println("Charge task path set to: " + pathToCS);
         missionRobot.setTargetPosition(pathToCS.get(pathToCS.size() - 1));
         missionRobot.chargeTask = this;
+        missionRobot.deactivateBug2();
         WMS.activeRobots.add(missionRobot.index);
     }
 
@@ -20,6 +21,7 @@ public class ChargeTask {
         if (missionRobot.pathIsComplete()) {
             missionRobot.setBatteryLevel(100);
             System.out.println(missionRobot.getName() + " recharges to 100%");
+            missionRobot.abortingToCharge = false;
             WMS.activeRobots.remove((Object) missionRobot.index);
             missionRobot.chargeTask = null;
         } else {
