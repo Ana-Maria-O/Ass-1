@@ -22,7 +22,11 @@ public class Task {
         this.packageShelfCoord = packageShelfCoord;
         this.packetRFID = packetRFID;
 
+        missionRobot.setCurrentSelectedPath(pathToShelf);
+        missionRobot.setTargetPosition(shelfLocation);
+        pathSetForSubtask = subtask;
         WMS.activeRobots.add(missionRobot.index);
+        missionRobot.task = this;
     }
 
     public void timeStep() {
@@ -85,9 +89,6 @@ public class Task {
 
                 }
                 break;
-
-            default:
-                throw new Error();
         }
         if (subtask >= 4) {
             WMS.activeRobots.remove((Object) missionRobot.index);

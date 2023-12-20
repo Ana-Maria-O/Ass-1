@@ -14,7 +14,7 @@ public class Robot {
 	private int currentPosition; // Current position of the robot in the warehouse.
 	private int targetPosition; // Target position in the warehouse.
 	private Graph graph; // Warehouse map
-	private int batteryLevel; // Battery level
+	private int batteryLevel = 100; // Battery level
 	List<Integer> currentSelectedPath = new ArrayList<Integer>();
 	int currentPathIndex = 0;
 	String direction = "right"; // absolute direction on the plane: up, down, left, right
@@ -25,6 +25,8 @@ public class Robot {
 	String bug2SearchDirection;
 	String name = "R1";
 	int index;
+	Task task;
+	ChargeTask chargeTask; // chargeTask has priority over task
 
 	// Instantiate an arm for the robot
 	RobotArm arm = new RobotArm(new Packet[1]);
@@ -38,8 +40,6 @@ public class Robot {
 		this.currentPosition = startPosition;
 		this.graph = graph;
 		graph.dynamicObstacles.put(startPosition, this);
-		// Set the Battery level to 100%
-		this.batteryLevel = 100;
 	}
 
 	public Robot(int startPosition, Graph graph, String direction, String name) {
@@ -87,9 +87,7 @@ public class Robot {
 		// the WMS it needs to go to a charging station and changes its current selected
 		// path to a path to the nearest charging station
 		if (path.size() > batteryLevel) {
-			currentSelectedPath = WMS.abortToCharge(index);
-			// Change the target of the robot
-			setTargetPosition(currentSelectedPath.get(currentSelectedPath.size() - 1));
+			throw new Error("Too low battery");
 		}
 		
 		// If the robot has enough battery for the new path, then select it
@@ -133,6 +131,7 @@ public class Robot {
 		graph.dynamicObstacles.remove(currentPosition, this);
 		setCurrentPosition(newPosition);
 		graph.dynamicObstacles.put(currentPosition, this);
+		batteryLevel--;
 	}
 
 	// moves forward given the current absolute plane direction
@@ -325,17 +324,38 @@ public class Robot {
 		return currentSelectedPath.get(currentPathIndex + 1);
 	}
 
+	// main step function
+	public void timeStep() {
+		if (chargeTask != null) {
+			System.out.println(getName() + " charge steps");
+			chargeTask.timeStep();
+		} else if (task == null) {
+			System.out.println(getName() + " idles");
+		} else {
+			System.out.println(getName() + " task steps");
+			task.timeStep();
+		}
+	}
+	
+	public boolean taskIsDone() {
+		return (chargeTask == null && (task == null || task.isDone));
+	}
+
+	public String getName() {
+		return "R" + this.index;
+	}
+
 	public void stepTowardsTarget() {
 		if (!stayStoppedToAvoidCollisionBug2) {
 			if (bug2IsActive) {
-				System.out.println("\n" + name + ": does bug2 step");
+				System.out.println("\n" + getName() + ": does bug2 step");
 				bug2algorithmStep();
 			} else {
-				System.out.println("\n" + name + ": does path step");
+				System.out.println("\n" + getName() + ": does path step");
 				takeStepOnPath();
 			}
 		} else {
-			System.out.println("\n" + name + ": stays stopped");
+			System.out.println("\n" + getName() + ": stays stopped");
 		}
 	}
 
@@ -373,12 +393,12 @@ public class Robot {
 	}
 
 	public void stopToAvoidCollisionForBug2() {
-		System.out.println(this.name + ": received stop signal");
+		System.out.println(getName() + ": received stop signal");
 		stayStoppedToAvoidCollisionBug2 = true;
 	}
 
 	public void continueCollsionAvertedBug2() {
-		System.out.println(this.name + ": received continue signal");
+		System.out.println(getName() + ": received continue signal");
 		stayStoppedToAvoidCollisionBug2 = false;
 	}
 

@@ -70,6 +70,8 @@ public class WMS {
 		// Package coordinates on shelf (for the robot arm movements)
 		int[] packageShelfCoord = new int[] { 2, 10, 2 };
 
+		// uncomment to show robot being sent to recharge
+		//robots.get(0).setBatteryLevel(5);
 		// Decide which robot to send to pick up the package from the shelf to the
 		// conveyor belt
 		Object[] mission = chooseRobotForMission(shelfLocation1, cbLocation1);
@@ -87,17 +89,14 @@ public class WMS {
 		// List<Integer> pathToShelf2 = (List<Integer>) mission2[1];
 		// Task task2 = new Task(robots.get(robotIndex2), pathToShelf2, shelfLocation2, cbLocation2, packageShelfCoord, RFID);
 
-		// List<Task> tasks = Arrays.asList(task1, task2);
-		List<Task> tasks = Arrays.asList(task1);
 		StatusDisplay.printGraph(graph, robots);
-
 		while (true) {
 			boolean allDone = true;
-			for (Task task : tasks) {
-				if (!task.isDone) {
+			for (Robot robot : robots) {
+				if (!robot.taskIsDone()) {
 					allDone = false;
-					task.timeStep();
 				}
+				robot.timeStep();
 			}
 			StatusDisplay.printGraph(graph, robots);
 			try {
@@ -250,7 +249,7 @@ public class WMS {
 				// Compute path for the robot to the conveyor belt
 				List<Integer> tempPath2 = computePathICA(shelfLocation, target, i);
 				// Compute the path to the closest charging station
-				List<Integer> tempPath3 = computePathICA(target, chargingStation, i);
+				List<Integer> tempPath3 = computePathICA(target, csPositionToCsLoadingPosition(chargingStation), i);
 
 				// Check if the robot has enough battery to reach the conveyor
 				// Doubled the minimum necessary battery to account for possible deviations from
@@ -261,7 +260,7 @@ public class WMS {
 				}
 				// If it doesn't, send the robot to charge
 				else {
-					sendRobotToCharge(i);
+					abortToCharge(i);
 				}
 			}
 		}
@@ -688,33 +687,12 @@ public class WMS {
 		}
 	}
 
-	// Send the robot to the nearest charger to charge
-	// TODO: Test
-	private static void sendRobotToCharge(Integer robotIndex) {
-		// Use the abortToCharge function to get the path to the nearest charging
-		// station
-		List<Integer> csPath = abortToCharge(robotIndex);
-
-		// Set the new path of the robot. If the path to the charging station is too
-		// long for its battery level, the setter function will call abortToCharge again
-		// and set the path and target. We won't check for this.
-		robots.get(robotIndex).setCurrentSelectedPath(csPath);
-
-		// Set the target of the robot to the nearest charging station
-		robots.get(robotIndex).setTargetPosition(csPath.get(csPath.size() - 1));
-
-		// If the robot is not on the list of active robots, add it
-		if (!activeRobots.contains(robotIndex)) {
-			activeRobots.add(robotIndex);
-		}
-	}
-
 	// Function called by a robot when it decides to abort its current mission and
 	// wants to go charge
 	// Returns the path for the robot to the nearest charging station
 	// TODO: Test
 	// TODO: Resume the mission after charging if robot has package
-	public static List<Integer> abortToCharge(Integer robotIndex) {
+	public static void abortToCharge(Integer robotIndex) {
 		// Get the position of the robot
 		int position = robots.get(robotIndex).getCurrentPosition();
 		// Position of the nearest charging station
@@ -745,7 +723,24 @@ public class WMS {
 		}
 
 		// Return the path to the charging station and reroute the other robots
-		return computePathICA(position, csPosition, robotIndex);
+		int csLoadingPosition = csPositionToCsLoadingPosition(csPosition);
+		List<Integer> csPath = computePathICA(position, csLoadingPosition, robotIndex);
+		new ChargeTask(robots.get(robotIndex), csLoadingPosition, csPath);
+	}
+
+	/*
+	 * We can't calculate a path directly into a charging station because it's seen as an obstacle
+	 * To solve it we can convert charging station positions to loading position
+	 */
+	public static int csPositionToCsLoadingPosition(int csPosition) {
+		if (csPosition == 0)
+			return 10;
+		else if (csPosition == 9)
+			return 19;
+		else if (csPosition == 90)
+			return 80;
+		else // csPosition = 99
+			return 89;
 	}
 
 	// Dummy function for notifications send to WMS
