@@ -33,7 +33,7 @@ public class WMS {
 	// Map with all the shortest paths in the warehouse
 	private static List<Integer>[][] allPaths;
 	// List with all the currently active robots in the warehouse
-	private static List<Integer> activeRobots = new ArrayList<Integer>();
+	static List<Integer> activeRobots = new ArrayList<Integer>();
 
 	// The graph repesenting the warehouse
 	private static Graph graph;
@@ -60,9 +60,11 @@ public class WMS {
 		computePathsForGrid();
 
 		// Target location of the conveyor
-		int target = 15;
+		int cbLocation1 = 15;
+		int cbLocation2 = 84;
 		// Target location of the shelf
-		int shelfLocation = 56;
+		int shelfLocation1 = 56;
+		int shelfLocation2 = 43;
 		// RFID of the package
 		String RFID = "abc123";
 		// Package coordinates on shelf (for the robot arm movements)
@@ -70,79 +72,53 @@ public class WMS {
 
 		// Decide which robot to send to pick up the package from the shelf to the
 		// conveyor belt
-		Object[] mission = chooseRobotForMission(shelfLocation, target);
+		Object[] mission = chooseRobotForMission(shelfLocation1, cbLocation1);
+		int robotIndex = ((Integer) mission[0]).intValue();
+		List<Integer> pathToShelf = (List<Integer>) mission[1];
+		Task task1 = new Task(robots.get(robotIndex), pathToShelf, shelfLocation1, cbLocation1, packageShelfCoord, RFID);
+		
+		/*
+		 * Uncomment the below uncommented lines to see failing test case
+		 * (uncomment choosing mission2 + tasks with two tasks)
+		 */
 
-		// Give the chosen robot the first path and add it to the active robots list
-		if (mission.length > 0) {
-			// Get the mission elements
-			int robotIndex = ((Integer) mission[0]).intValue();
-			List<Integer> path1 = (List<Integer>) mission[1];
+		// Object[] mission2 = chooseRobotForMission(shelfLocation2, cbLocation2);
+		// int robotIndex2 = ((Integer) mission2[0]).intValue();
+		// List<Integer> pathToShelf2 = (List<Integer>) mission2[1];
+		// Task task2 = new Task(robots.get(robotIndex2), pathToShelf2, shelfLocation2, cbLocation2, packageShelfCoord, RFID);
 
-			// Get the robot selected for the mission
-			Robot missionRobot = robots.get(robotIndex);
+		// List<Task> tasks = Arrays.asList(task1, task2);
+		List<Task> tasks = Arrays.asList(task1);
+		StatusDisplay.printGraph(graph, robots);
 
-			missionRobot.setCurrentSelectedPath(path1);
-			// Set the robot's target
-			missionRobot.setTargetPosition(shelfLocation);
-			// Add the robot to the active robots list
-			activeRobots.add(robotIndex);
-			// Timer for the safety monitor
-			int safety = 0;
-
-			// While loop until the mission is complete
-			while (missionRobot.getCurrentPosition() != target) {
-				// Update the safety timer
-				safety += 1;
-				Iterator<Integer> iterator = activeRobots.iterator();
-				// All robots make a step, and we check if any robot reached a destination
-				while (iterator.hasNext()) {
-					StatusDisplay.printGraph(graph, robots);
-					int robot = iterator.next();
-					Robot selectedRobot = robots.get(robot);
-					selectedRobot.stepTowardsTarget();
-					// If the robot reached its destination, we clear the selected path and we take
-					// it out of the active robots list
-					// NOTE: This would probably change depending on the scenario
-					if (selectedRobot.getCurrentPosition() == selectedRobot.getTargetPosition()) {
-						// Clear the selected path
-						selectedRobot.clearCurrentSelectedPath();
-						// Remove this robot's index from the active robots list
-						iterator.remove();
-					}
-				}
-
-				// We check if the robot's reached the destination of path1 while walking path1
-				if (missionRobot.getCurrentPosition() == shelfLocation
-						&& missionRobot.getTargetPosition() == shelfLocation) {
-					// Get the package off the shelf
-					missionRobot.fetchPackageFromShelf(packageShelfCoord[0], packageShelfCoord[1], packageShelfCoord[2],
-							RFID);
-					// Get a route to the conveyor belt and give it to the robot
-					// We can't use the one we had before because the other robots' routes may
-					// differ from when we computed it
-					missionRobot.setCurrentSelectedPath(computePathICA(shelfLocation, target, robotIndex));
-					// Set the robot's new target
-					missionRobot.setTargetPosition(target);
-					// Put the robot back into the active robots list
-					activeRobots.add(robotIndex);
-				}
-
-				// We check if the robot reached the conveyor belt and the conveyor belt is the
-				// target
-				if (missionRobot.getCurrentPosition() == target && missionRobot.getTargetPosition() == target) {
-					// The robot places the package on the conveyor belt
-					missionRobot.putPackageOnConveyorBelt(RFID);
-				}
-
-				// If it is time for the safety monitor to analyze the robots, we call it and
-				// reset the timer
-				if (safety == SAFETY_TIMER) {
-					safetyMonitor();
-					safety = 0;
+		while (true) {
+			boolean allDone = true;
+			for (Task task : tasks) {
+				if (!task.isDone) {
+					allDone = false;
+					task.timeStep();
 				}
 			}
+			StatusDisplay.printGraph(graph, robots);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (allDone)
+				break;
 		}
 
+		System.exit(0);
+
+		
+		int safety = 0;
+		// If it is time for the safety monitor to analyze the robots, we call it and
+		// reset the timer
+		if (safety == SAFETY_TIMER) {
+			safetyMonitor();
+			safety = 0;
+		}
 		// TODO: Create scenarios for deviations
 	}
 
@@ -322,7 +298,7 @@ public class WMS {
 	// and modifies the path of every other robot
 	// If rIndex is of an inactive robot then it returns the new path of the first
 	// robot in the activeRobots list and modifies the path of every other robot
-	private static List<Integer> computePathICA(int start, int end, int rIndex) {
+	static List<Integer> computePathICA(int start, int end, int rIndex) {
 		// Some constants for the function
 		// Number of initial mutations
 		final int MUTATIONS = 4;
