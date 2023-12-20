@@ -385,7 +385,7 @@ public class Robot {
 	private void activateBug2(Object obstacle) {
 		System.out.println("bug2 activated");
 		bug2IsActive = true;
-		remainingPathToFindUsingBug2 = currentSelectedPath.subList(currentPathIndex, currentSelectedPath.size());
+		remainingPathToFindUsingBug2 = currentSelectedPath.subList(currentPathIndex + 1, currentSelectedPath.size());
 		if (obstacle instanceof Robot) {
 			System.out.println("telling other robot to stop");
 			otherRobotInBug2 = (Robot) obstacle;

@@ -97,7 +97,8 @@ public class Graph {
 	    if (step != src) {
 	        return new ArrayList<>();
 	    }
-
+		// make path include the start node
+		path.add(src);
 	    Collections.reverse(path);
 	    return path;
 	}
